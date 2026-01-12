@@ -1,6 +1,6 @@
 #include "DataStore.h"
 
-#if defined(VARIANT_heltec_v3_custom)
+#if defined(VARIANT_heltec_v3_custom) || defined(VARIANT_heltec_v4_custom)
 
 #include "gps/RTC.h"
 #include <algorithm>

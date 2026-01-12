@@ -6,7 +6,7 @@
 
 #include "configuration.h"
 
-#if defined(VARIANT_heltec_v3_custom)
+#if defined(VARIANT_heltec_v3_custom) || defined(VARIANT_heltec_v4_custom)
 
 #include "CustomUIModule.h"
 #include "DebugConfiguration.h"

@@ -312,8 +312,8 @@ void setupModules()
     // acks
     routingModule = new RoutingModule();
 
-    // Setup custom UI module if building for heltec-v3-custom variant
-#if defined(VARIANT_heltec_v3_custom) || defined(HELTEC_V3_CUSTOM)
+    // Setup custom UI module if building for heltec-v3-custom or heltec-v4-custom variants
+#if defined(VARIANT_heltec_v3_custom) || defined(HELTEC_V3_CUSTOM) || defined(VARIANT_heltec_v4_custom) || defined(HELTEC_V4_CUSTOM)
     setup_CustomUIModule();
 #endif
 }

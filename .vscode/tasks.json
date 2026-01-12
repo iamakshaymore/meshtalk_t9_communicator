@@ -30,6 +30,18 @@
 			"type": "shell",
 			"command": "platformio run --target upload -e heltec-v3-custom",
 			"isBackground": false
+		},
+		{
+			"label": "Build V4 Custom Environment",
+			"type": "shell",
+			"command": "platformio run -e heltec-v4-custom",
+			"isBackground": false
+		},
+		{
+			"label": "Upload V4 Custom Environment",
+			"type": "shell",
+			"command": "platformio run --target upload -e heltec-v4-custom",
+			"isBackground": false
 		}
 	]
 }

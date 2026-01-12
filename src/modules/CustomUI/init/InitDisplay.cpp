@@ -12,13 +12,24 @@
 #define LOG_INFO(format, ...) Serial.printf("[INFO] " format "\n", ##__VA_ARGS__)
 #endif
 
-// Display pins for Heltec V3 with external ST7789
-#define TFT_MOSI 5   // Data line - GPIO5
-#define TFT_SCLK 7   // Clock line - GPIO7
-#define TFT_CS   6   // Chip select - GPIO6
-#define TFT_DC   2   // Data/Command - GPIO2
-#define TFT_RST  3   // Reset - GPIO3
-#define TFT_BL   4   // Backlight - GPIO4
+// Display pins - conditional for V3 and V4 variants
+#if defined(VARIANT_heltec_v4_custom)
+    // Heltec V4 Custom with external ST7789
+    #define TFT_MOSI 5  // Data line - GPIO33 (DISP_MOSI)
+    #define TFT_SCLK 45  // Clock line - GPIO47 (DISP_SCK)
+    #define TFT_CS   6  // Chip select - GPIO48 (DISP_CS)
+    #define TFT_DC   2  // Data/Command - GPIO21 (DISP_DC)
+    #define TFT_RST  3  // Reset - GPIO17 (DISP_RST)
+    #define TFT_BL   4  // Backlight - GPIO34 (DISP_BL)
+#else
+    // Heltec V3 Custom with external ST7789 (default)
+    #define TFT_MOSI 5   // Data line - GPIO5
+    #define TFT_SCLK 7   // Clock line - GPIO7
+    #define TFT_CS   6   // Chip select - GPIO6
+    #define TFT_DC   2   // Data/Command - GPIO2
+    #define TFT_RST  3   // Reset - GPIO3
+    #define TFT_BL   4   // Backlight - GPIO4
+#endif
 
 /**
  * LovyanGFX optimized display class for ST7789 with ESP32-S3
@@ -103,12 +114,19 @@ InitDisplay::~InitDisplay() {
 bool InitDisplay::init() {
     LOG_INFO("🔧 InitDisplay: Initializing ST7789 display with LovyanGFX...");
     
-    // // Initialize backlight pin first
-    // if (TFT_BL >= 0) {
-    //     pinMode(TFT_BL, OUTPUT);
-    //     digitalWrite(TFT_BL, HIGH); // Turn on backlight
-    //     delay(100);
-    // }
+    // Initialize Vext (external power) first - V4 uses GPIO36 active low
+    pinMode(36, OUTPUT);
+    digitalWrite(36, LOW); // Turn ON external power (active low)
+    delay(200); // Wait for power to stabilize
+    LOG_INFO("🔧 InitDisplay: External power (Vext) enabled on GPIO36");
+    
+    // Initialize backlight pin first
+    if (TFT_BL >= 0) {
+        pinMode(TFT_BL, OUTPUT);
+        digitalWrite(TFT_BL, HIGH); // Turn on backlight
+        delay(100);
+        LOG_INFO("🔧 InitDisplay: Backlight enabled on GPIO %d", TFT_BL);
+    }
     
     // Create the LovyanGFX display instance
     tft = new LGFX();
@@ -118,15 +136,15 @@ bool InitDisplay::init() {
     
     // Report memory status and PSRAM availability
     LOG_INFO("🔧 InitDisplay: Memory Status Report:");
-    LOG_INFO("🔧 InitDisplay: - Total Heap: %zu bytes (%.1fKB)", ESP.getHeapSize(), ESP.getHeapSize()/1024.0);
-    LOG_INFO("🔧 InitDisplay: - Free Heap: %zu bytes (%.1fKB)", ESP.getFreeHeap(), ESP.getFreeHeap()/1024.0);
+    LOG_INFO("🔧 InitDisplay: - Total Heap: %u bytes (%.1fKB)", (unsigned int)ESP.getHeapSize(), ESP.getHeapSize()/1024.0);
+    LOG_INFO("🔧 InitDisplay: - Free Heap: %u bytes (%.1fKB)", (unsigned int)ESP.getFreeHeap(), ESP.getFreeHeap()/1024.0);
     
 #if defined(CONFIG_SPIRAM_SUPPORT) && defined(BOARD_HAS_PSRAM)
     size_t psramSize = ESP.getPsramSize();
     if (psramSize > 0) {
         size_t freePsram = heap_caps_get_free_size(MALLOC_CAP_SPIRAM);
-        LOG_INFO("🔧 InitDisplay: - PSRAM Total: %zu bytes (%.1fMB)", psramSize, psramSize/(1024.0*1024.0));
-        LOG_INFO("🔧 InitDisplay: - PSRAM Free: %zu bytes (%.1fMB)", freePsram, freePsram/(1024.0*1024.0));
+        LOG_INFO("🔧 InitDisplay: - PSRAM Total: %u bytes (%.1fMB)", (unsigned int)psramSize, psramSize/(1024.0*1024.0));
+        LOG_INFO("🔧 InitDisplay: - PSRAM Free: %u bytes (%.1fMB)", (unsigned int)freePsram, freePsram/(1024.0*1024.0));
         LOG_INFO("🔧 InitDisplay: ✅ PSRAM ENABLED for graphics operations");
         tft->setColorDepth(16); // Use 16-bit color to optimize PSRAM usage
     } else {
@@ -139,6 +157,15 @@ bool InitDisplay::init() {
     delay(100);
     tft->setRotation(1); // Landscape mode: 320x240
     tft->fillScreen(0x0000); // Pure black background for power efficiency
+    
+    // Add debug logging for pin configuration
+    LOG_INFO("🔧 InitDisplay: Pin Configuration - MOSI:%d SCK:%d CS:%d DC:%d RST:%d BL:%d", 
+             TFT_MOSI, TFT_SCLK, TFT_CS, TFT_DC, TFT_RST, TFT_BL);
+    
+    // Test display with a simple pattern
+    tft->fillScreen(0x001F); // Blue background
+    delay(500);
+    tft->fillScreen(0x0000); // Black background
     
     initialized = true;
     LOG_INFO("🔧 InitDisplay: LovyanGFX initialized with 80MHz SPI, DMA, and PSRAM support");
