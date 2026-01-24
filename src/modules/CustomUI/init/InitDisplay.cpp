@@ -18,7 +18,7 @@
     #define TFT_MOSI 5  // Data line - GPIO33 (DISP_MOSI)
     #define TFT_SCLK 45  // Clock line - GPIO47 (DISP_SCK)
     #define TFT_CS   6  // Chip select - GPIO48 (DISP_CS)
-    #define TFT_DC   2  // Data/Command - GPIO21 (DISP_DC)
+    #define TFT_DC   21  // Data/Command - GPIO21 (DISP_DC)
     #define TFT_RST  3  // Reset - GPIO17 (DISP_RST)
     #define TFT_BL   4  // Backlight - GPIO34 (DISP_BL)
 #else

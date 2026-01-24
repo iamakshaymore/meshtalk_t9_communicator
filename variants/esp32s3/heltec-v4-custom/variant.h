@@ -13,6 +13,7 @@
 // #define I2C_SCL1 SCL     // Commented out to disable I2C scanning on port 1
 
 #define VEXT_ENABLE 36 // active low, powers the oled display and the lora antenna boost
+#define VEXT_ALWAYS_ON // CRITICAL: Keep VEXT powered - only powers GC1109 LDO (no display). Turning off breaks RX!
 #define BUTTON_PIN 0
 
 #define ADC_CTRL 37
@@ -45,10 +46,10 @@
 
 #define USE_GC1109_PA   // We have a GC1109 power amplifier+attenuator
 #define LORA_PA_POWER 7 // power en
-#define LORA_PA_EN 21   // Changed from GPIO 2 to GPIO 21 (was OLED reset, now unused)
+#define LORA_PA_EN 2   // Changed from GPIO 2 to GPIO 21 (was OLED reset, now unused)
 #define LORA_PA_TX_EN 46 // enable tx
 
-#define HAS_32768HZ 1
+//#define HAS_32768HZ 1
 
 // Define our variant name for conditional compilation
 #define VARIANT_heltec_v4_custom 1

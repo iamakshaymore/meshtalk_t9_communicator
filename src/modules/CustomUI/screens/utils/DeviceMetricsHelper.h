@@ -51,10 +51,60 @@ public:
      * @return minimum free heap in bytes
      */
     static size_t getMinFreeHeap();
+    
+    /**
+     * Get SRAM free memory in bytes (excluding PSRAM)
+     * @return free SRAM size in bytes
+     */
+    static size_t getSramFree();
+    
+    /**
+     * Get SRAM total size in bytes (excluding PSRAM)
+     * @return total SRAM size in bytes
+     */
+    static size_t getSramTotal();
+    
+    /**
+     * Get SRAM utilization percentage (0-100)
+     * @return SRAM usage percentage
+     */
+    static int getSramUtilization();
+    
+    /**
+     * Get PSRAM free memory in bytes
+     * @return free PSRAM size in bytes (0 if no PSRAM)
+     */
+    static size_t getPsramFree();
+    
+    /**
+     * Get PSRAM total size in bytes
+     * @return total PSRAM size in bytes (0 if no PSRAM)
+     */
+    static size_t getPsramTotal();
+    
+    /**
+     * Get PSRAM utilization percentage (0-100)
+     * @return PSRAM usage percentage (0 if no PSRAM)
+     */
+    static int getPsramUtilization();
+    
+    /**
+     * Check if device has PSRAM available
+     * @return true if PSRAM is available
+     */
+    static bool hasPsram();
+    
+    /**
+     * Get separate SRAM and PSRAM memory strings
+     * @return formatted string like "SRAM: 65%\nPSRAM: 42%" or just "SRAM: 65%"
+     */
+    static String getSeparateMemoryString();
 
 private:
     static size_t lastFreeHeap;
     static int lastMemoryPercent;
+    static int lastSramPercent;
+    static int lastPsramPercent;
     static size_t minFreeHeapSeen;
     static bool initialized;
     

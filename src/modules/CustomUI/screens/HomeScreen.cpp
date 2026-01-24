@@ -160,37 +160,78 @@ void HomeScreen::drawSystemMetrics(lgfx::LGFX_Device& tft) {
     tft.print("SYSTEM:");
     y += LINE_HEIGHT;
     
-    // Memory utilization with compact format
+    // SRAM utilization
     tft.setCursor(RIGHT_COLUMN_X + 5, y);
-    int memoryPercent = DeviceMetricsHelper::getMemoryUtilization();
-    String memInfo = "RAM >> " + String(memoryPercent) + "%";
+    int sramPercent = DeviceMetricsHelper::getSramUtilization();
+    String sramInfo = "SRAM >> " + String(sramPercent) + "%";
     
-    // Color code memory based on utilization
-    if (memoryPercent < 70) {
+    // Color code SRAM based on utilization
+    if (sramPercent < 70) {
         tft.setTextColor(0x07E0, 0x0000); // Green - Good
-    } else if (memoryPercent < 85) {
+    } else if (sramPercent < 85) {
         tft.setTextColor(0xFFE0, 0x0000); // Yellow - Warning
     } else {
         tft.setTextColor(0xF800, 0x0000); // Red - Critical
     }
-    tft.print(memInfo);
+    tft.print(sramInfo);
     y += LINE_HEIGHT;
     
-    // Free memory details
+    // PSRAM utilization (if available)
+    if (DeviceMetricsHelper::hasPsram()) {
+        tft.setCursor(RIGHT_COLUMN_X + 5, y);
+        int psramPercent = DeviceMetricsHelper::getPsramUtilization();
+        String psramInfo = "PSRAM >> " + String(psramPercent) + "%";
+        
+        // Color code PSRAM based on utilization
+        if (psramPercent < 70) {
+            tft.setTextColor(0x07E0, 0x0000); // Green - Good
+        } else if (psramPercent < 85) {
+            tft.setTextColor(0xFFE0, 0x0000); // Yellow - Warning
+        } else {
+            tft.setTextColor(0xF800, 0x0000); // Red - Critical
+        }
+        tft.print(psramInfo);
+        y += LINE_HEIGHT;
+    }
+    
+    // Free SRAM details
     tft.setTextColor(0x4208, 0x0000); // Dim green
     tft.setCursor(RIGHT_COLUMN_X + 5, y);
-    size_t freeHeap = DeviceMetricsHelper::getFreeHeap();
-    String freeInfo = "Free: ";
-    if (freeHeap >= 1024) {
-        freeInfo += String(freeHeap / 1024) + "KB";
+    size_t freeSram = DeviceMetricsHelper::getSramFree();
+    String freeInfo = "SRAM Free: ";
+    if (freeSram >= 1024) {
+        freeInfo += String(freeSram / 1024) + "KB";
     } else {
-        freeInfo += String(freeHeap) + "B";
+        freeInfo += String(freeSram) + "B";
     }
     tft.print(freeInfo);
     y += LINE_HEIGHT;
     
+    // Free PSRAM details (if available)
+    if (DeviceMetricsHelper::hasPsram()) {
+        tft.setTextColor(0x4208, 0x0000); // Dim green
+        tft.setCursor(RIGHT_COLUMN_X + 5, y);
+        size_t freePsram = DeviceMetricsHelper::getPsramFree();
+        
+        // Debug logging
+        LOG_DEBUG("PSRAM Free in UI: %zu bytes (%.1fMB)", freePsram, (float)freePsram / (1024.0 * 1024.0));
+        
+        String psramFreeInfo = "PSRAM Free: ";
+        if (freePsram >= 1024*1024) {
+            float mbValue = (float)freePsram / (1024.0 * 1024.0);
+            psramFreeInfo += String(mbValue, 1) + "MB";  // Show 1 decimal place
+        } else if (freePsram >= 1024) {
+            psramFreeInfo += String(freePsram / 1024) + "KB";
+        } else {
+            psramFreeInfo += String(freePsram) + "B";
+        }
+        tft.print(psramFreeInfo);
+        y += LINE_HEIGHT;
+    }
+    
     // Draw border around system metrics
-    tft.drawRect(RIGHT_COLUMN_X - 3, getContentY() + 12, COLUMN_WIDTH - 10, 65, 0xFFE0);
+    int borderHeight = DeviceMetricsHelper::hasPsram() ? 98 : 65; // Smaller height when no PSRAM
+    tft.drawRect(RIGHT_COLUMN_X - 3, getContentY() + 12, COLUMN_WIDTH - 10, borderHeight, 0xFFE0);
 }
 
 void HomeScreen::drawLastActivity(lgfx::LGFX_Device& tft) {

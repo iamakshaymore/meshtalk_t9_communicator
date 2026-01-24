@@ -8,6 +8,8 @@
 // Static member initialization
 size_t DeviceMetricsHelper::lastFreeHeap = 0;
 int DeviceMetricsHelper::lastMemoryPercent = -1;
+int DeviceMetricsHelper::lastSramPercent = -1;
+int DeviceMetricsHelper::lastPsramPercent = -1;
 size_t DeviceMetricsHelper::minFreeHeapSeen = SIZE_MAX;
 bool DeviceMetricsHelper::initialized = false;
 
@@ -16,15 +18,27 @@ void DeviceMetricsHelper::init() {
     
     lastFreeHeap = getFreeHeap();
     lastMemoryPercent = getMemoryUtilization();
+    lastSramPercent = getSramUtilization();
+    lastPsramPercent = getPsramUtilization();
     minFreeHeapSeen = lastFreeHeap;
     initialized = true;
     
-    LOG_INFO("DeviceMetricsHelper initialized - Free heap: %zu bytes", lastFreeHeap);
+    LOG_INFO("DeviceMetricsHelper initialized - Free heap: %zu bytes, SRAM: %d%%, PSRAM: %d%%", 
+             lastFreeHeap, lastSramPercent, lastPsramPercent);
 }
 
 size_t DeviceMetricsHelper::getFreeHeap() {
 #ifdef ARCH_ESP32
-    return ESP.getFreeHeap();
+    size_t freeHeap = ESP.getFreeHeap();
+    
+#if defined(CONFIG_SPIRAM_SUPPORT) && defined(BOARD_HAS_PSRAM)
+    // Add free PSRAM to total free memory if present
+    if (ESP.getPsramSize() > 0) {
+        freeHeap += ESP.getFreePsram();
+    }
+#endif
+    
+    return freeHeap;
 #else
     // For other architectures, try to use available memory functions
     // This is a fallback implementation
@@ -32,9 +46,99 @@ size_t DeviceMetricsHelper::getFreeHeap() {
 #endif
 }
 
+size_t DeviceMetricsHelper::getSramFree() {
+#ifdef ARCH_ESP32
+    return ESP.getFreeHeap(); // This is SRAM only
+#else
+    return 0;
+#endif
+}
+
+size_t DeviceMetricsHelper::getSramTotal() {
+#ifdef ARCH_ESP32
+    return ESP.getHeapSize(); // This is SRAM only
+#else
+    return 320000; // 320KB typical for ESP32
+#endif
+}
+
+int DeviceMetricsHelper::getSramUtilization() {
+    size_t freeSram = getSramFree();
+    size_t totalSram = getSramTotal();
+    
+    if (totalSram == 0) return 0;
+    
+    size_t usedSram = totalSram - freeSram;
+    int utilization = (int)((usedSram * 100) / totalSram);
+    
+    // Ensure utilization is within 0-100 range
+    if (utilization < 0) utilization = 0;
+    if (utilization > 100) utilization = 100;
+    
+    return utilization;
+}
+
+size_t DeviceMetricsHelper::getPsramFree() {
+#if defined(ARCH_ESP32) && defined(CONFIG_SPIRAM_SUPPORT) && defined(BOARD_HAS_PSRAM)
+    if (ESP.getPsramSize() > 0) {
+        return ESP.getFreePsram();
+    }
+#endif
+    return 0;
+}
+
+size_t DeviceMetricsHelper::getPsramTotal() {
+#if defined(ARCH_ESP32) && defined(CONFIG_SPIRAM_SUPPORT) && defined(BOARD_HAS_PSRAM)
+    return ESP.getPsramSize();
+#endif
+    return 0;
+}
+
+int DeviceMetricsHelper::getPsramUtilization() {
+    size_t freePsram = getPsramFree();
+    size_t totalPsram = getPsramTotal();
+    
+    if (totalPsram == 0) return 0;
+    
+    size_t usedPsram = totalPsram - freePsram;
+    int utilization = (int)((usedPsram * 100) / totalPsram);
+    
+    // Ensure utilization is within 0-100 range
+    if (utilization < 0) utilization = 0;
+    if (utilization > 100) utilization = 100;
+    
+    return utilization;
+}
+
+bool DeviceMetricsHelper::hasPsram() {
+#if defined(ARCH_ESP32) && defined(CONFIG_SPIRAM_SUPPORT) && defined(BOARD_HAS_PSRAM)
+    return ESP.getPsramSize() > 0;
+#endif
+    return false;
+}
+
+String DeviceMetricsHelper::getSeparateMemoryString() {
+    String result = "SRAM: " + String(getSramUtilization()) + "%";
+    
+    if (hasPsram()) {
+        result += "\nPSRAM: " + String(getPsramUtilization()) + "%";
+    }
+    
+    return result;
+}
+
 size_t DeviceMetricsHelper::getTotalHeap() {
 #ifdef ARCH_ESP32
-    return ESP.getHeapSize();
+    size_t totalHeap = ESP.getHeapSize();
+    
+#if defined(CONFIG_SPIRAM_SUPPORT) && defined(BOARD_HAS_PSRAM)
+    // Add PSRAM to total available memory if present
+    if (ESP.getPsramSize() > 0) {
+        totalHeap += ESP.getPsramSize();
+    }
+#endif
+    
+    return totalHeap;
 #else
     // For other architectures, return a reasonable default
     return 320000; // 320KB typical for ESP32
@@ -65,6 +169,8 @@ bool DeviceMetricsHelper::hasChanged() {
     
     size_t currentFreeHeap = getFreeHeap();
     int currentMemoryPercent = getMemoryUtilization();
+    int currentSramPercent = getSramUtilization();
+    int currentPsramPercent = getPsramUtilization();
     
     // Check if there's a significant change in memory
     bool changed = false;
@@ -74,14 +180,24 @@ bool DeviceMetricsHelper::hasChanged() {
         changed = true;
     }
     
-    // Check for percentage change
+    // Check for percentage changes
     if (abs(currentMemoryPercent - lastMemoryPercent) > 2) { // 2% threshold
+        changed = true;
+    }
+    
+    if (abs(currentSramPercent - lastSramPercent) > 2) { // 2% threshold for SRAM
+        changed = true;
+    }
+    
+    if (abs(currentPsramPercent - lastPsramPercent) > 2) { // 2% threshold for PSRAM
         changed = true;
     }
     
     if (changed) {
         lastFreeHeap = currentFreeHeap;
         lastMemoryPercent = currentMemoryPercent;
+        lastSramPercent = currentSramPercent;
+        lastPsramPercent = currentPsramPercent;
     }
     
     // Update minimum heap tracking
