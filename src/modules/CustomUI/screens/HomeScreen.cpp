@@ -1,4 +1,8 @@
 #include "HomeScreen.h"
+#include "modules/CustomUI/CustomUIModule.h"
+#include "modules/CustomUI/screens/menu_screens/MainMenuScreen.h"
+#include "modules/CustomUI/screens/list_screens/NodesListScreen.h"
+#include "modules/CustomUI/screens/list_screens/MessageListScreen.h"
 #include "utils/BatteryHelper.h"
 #include "utils/LoRaHelper.h"
 #include "utils/DeviceMetricsHelper.h"
@@ -7,9 +11,8 @@
 HomeScreen::HomeScreen() : BaseScreen("Home"), lastUpdate(0), lastNodeCount(-1), statusChanged(true) {
     // Set navigation hints for home screen
     std::vector<NavHint> hints;
-    hints.push_back(NavHint('1', "Home"));
-    hints.push_back(NavHint('3', "Snake"));
-    hints.push_back(NavHint('7', "Nodes"));
+    hints.push_back(NavHint('1', "Menu"));
+    hints.push_back(NavHint('A', "Nodes"));
     setNavigationHints(hints);
     
     // Initialize device metrics
@@ -22,11 +25,10 @@ HomeScreen::~HomeScreen() {
     LOG_INFO("HomeScreen destroyed");
 }
 
-void HomeScreen::onEnter() {
+void HomeScreen::onEnter(const NavigationContext& ctx) {
     LOG_INFO("Entering Home screen");
     statusChanged = true;
     lastUpdate = 0;
-    forceRedraw();
 }
 
 void HomeScreen::onExit() {
@@ -57,16 +59,19 @@ void HomeScreen::onDraw(lgfx::LGFX_Device& tft) {
 bool HomeScreen::handleKeyPress(char key) {
     switch (key) {
         case '1':
-            // Already on home
+            // Menu Screen
+            if (customUIModule) {
+                customUIModule->getScreenManager()->navigateTo(customUIModule->getMenuScreen());
+            }
             return true;
             
-        case '3':
-            // Let global navigation handle Snake game
-            return false;
-            
-        case '7':
-            // Let global navigation handle this
-            return false;
+        case 'A':
+        case 'a':
+            // Nodes List (Quick Access)
+            if (customUIModule) {
+                customUIModule->getScreenManager()->navigateTo(customUIModule->getNodesListScreen());
+            }
+            return true;
             
         default:
             return false; // Key not handled

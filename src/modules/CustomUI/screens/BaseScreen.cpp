@@ -4,7 +4,7 @@
 #include "configuration.h"
 
 BaseScreen::BaseScreen(const String& screenName) 
-    : name(screenName), needsRedraw(true), headerNeedsUpdate(true) {
+    : name(screenName), needsFullRedraw(true), headerNeedsUpdate(true), footerNeedsUpdate(true), contentNeedsRedraw(true) {
     LOG_INFO("BaseScreen '%s' created", screenName.c_str());
 }
 
@@ -18,29 +18,34 @@ void BaseScreen::draw(lgfx::LGFX_Device& tft) {
         headerNeedsUpdate = true;
     }
     
-    bool contentNeedsUpdate = false;
-    
-    if (needsRedraw) {
+    if (needsFullRedraw) {
         // Full screen redraw - ensure black background
         tft.fillScreen(0x0000); // Pure black background
         drawHeader(tft);
         drawFooter(tft);
-        contentNeedsUpdate = true;
-        needsRedraw = false;
-        headerNeedsUpdate = false;
-    } else if (headerNeedsUpdate) {
-        // Update only header
-        updateHeader(tft);
-        headerNeedsUpdate = false;
-        contentNeedsUpdate = true;
-    } else {
-        // Check if content area needs updating (for games, etc.)
-        contentNeedsUpdate = true; // Let derived classes handle their own dirty rectangle logic
-    }
-    
-    // Always call onDraw - let derived classes decide what to redraw
-    if (contentNeedsUpdate) {
         onDraw(tft);
+        
+        // Reset all flags
+        needsFullRedraw = false;
+        headerNeedsUpdate = false;
+        footerNeedsUpdate = false;
+        contentNeedsRedraw = false;
+    } else {
+        // Partial updates
+        if (headerNeedsUpdate) {
+            updateHeader(tft);
+            headerNeedsUpdate = false;
+        }
+        
+        if (footerNeedsUpdate) {
+            drawFooter(tft);
+            footerNeedsUpdate = false;
+        }
+        
+        // Always attempt to draw content - derived classes handle their own dirty checks
+        // This ensures game loops (which don't set contentNeedsRedraw but rely on needsUpdate returning true) work correctly
+        onDraw(tft);
+        contentNeedsRedraw = false;
     }
 }
 
@@ -117,6 +122,7 @@ void BaseScreen::updateHeader(lgfx::LGFX_Device& tft) {
         } else {
             tft.setTextColor(0x7800, 0x0000); // Dark red on black
         }
+        tft.setTextSize(1);
         tft.print(batteryStatus);
         
         lastBatteryStatus = batteryStatus;
@@ -168,5 +174,5 @@ void BaseScreen::drawFooter(lgfx::LGFX_Device& tft) {
 
 void BaseScreen::setNavigationHints(const std::vector<NavHint>& hints) {
     navHints = hints;
-    needsRedraw = true; // Footer changed, need full redraw
+    footerNeedsUpdate = true; // Footer changed, need redraw
 }

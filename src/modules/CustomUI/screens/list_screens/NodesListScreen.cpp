@@ -1,4 +1,5 @@
 #include "NodesListScreen.h"
+#include "modules/CustomUI/CustomUIModule.h"
 #include "gps/RTC.h" // for getTime() function
 #include <Arduino.h>
 #include <algorithm>
@@ -8,7 +9,7 @@
 #define LOG_INFO(format, ...) Serial.printf("[INFO] " format "\n", ##__VA_ARGS__)
 #endif
 
-NodesListScreen::NodesListScreen() : BaseListScreen("Mesh Nodes", 20) {
+NodesListScreen::NodesListScreen() : BaseListScreen("Mesh Nodes", 25) {
     // Set navigation hints
     std::vector<NavHint> hints;
     hints.push_back(NavHint('1', "Select"));
@@ -25,20 +26,21 @@ NodesListScreen::~NodesListScreen() {
     LOG_INFO("📡 NodesListScreen: Destroyed");
 }
 
-void NodesListScreen::onEnter() {
+void NodesListScreen::onEnter(const NavigationContext& ctx) {
     LOG_INFO("📡 NodesListScreen: Entering screen");
     
-    // Call parent onEnter
-    BaseListScreen::onEnter();
+    // Call parent onEnter to handle selection preservation
+    BaseListScreen::onEnter(ctx);
     
-    // Initialize nodes state
+    // Initialize state
     nodes.clear();
+    channels.clear();
     isLoading = false;
     
-    // Load nodes on next update cycle
+    // Load data on next update cycle
     lastRefreshTime = 0; // This will trigger refresh in onBeforeDrawItems
     
-    LOG_INFO("📡 NodesListScreen: Screen ready, nodes will load on next update");
+    LOG_INFO("📡 NodesListScreen: Screen ready, data will load on next update");
 }
 
 void NodesListScreen::onExit() {
@@ -52,7 +54,11 @@ void NodesListScreen::onExit() {
     nodes.shrink_to_fit();
     std::vector<NodeInfo>().swap(nodes);
     
-    // Reset nodes state
+    channels.clear();
+    channels.shrink_to_fit();
+    std::vector<ChannelHelperInfo>().swap(channels);
+    
+    // Reset state
     isLoading = false;
     lastRefreshTime = 0;
     
@@ -61,7 +67,7 @@ void NodesListScreen::onExit() {
 }
 
 bool NodesListScreen::onBeforeDrawItems(lgfx::LGFX_Device& tft) {
-    // Refresh nodes list periodically or on first load
+    // Refresh list periodically or on first load
     unsigned long now = millis();
     if (lastRefreshTime == 0 || (now - lastRefreshTime > 10000)) { // Refresh every 10 seconds (reduced frequency)
         refreshNodesList();
@@ -74,17 +80,17 @@ bool NodesListScreen::onBeforeDrawItems(lgfx::LGFX_Device& tft) {
         tft.setTextColor(COLOR_YELLOW, COLOR_BLACK);
         tft.setTextSize(1);
         tft.setCursor(10, getContentY() + 20);
-        tft.print("Loading mesh nodes...");
+        tft.print("Loading mesh info...");
         return true; // We handled the drawing
     }
     
-    if (nodes.empty()) {
-        // Clear content area and show no nodes message
+    if (nodes.empty() && channels.empty()) {
+        // Clear content area and show no data message
         tft.fillRect(0, getContentY(), getContentWidth(), getContentHeight(), COLOR_BLACK);
         tft.setTextColor(COLOR_DARK_RED, COLOR_BLACK);
         tft.setTextSize(1);
         tft.setCursor(10, getContentY() + 20);
-        tft.print("No mesh nodes found");
+        tft.print("No nodes/channels found");
         
         tft.setTextColor(COLOR_DIM_GREEN, COLOR_BLACK);
         tft.setCursor(10, getContentY() + 40);
@@ -107,8 +113,71 @@ bool NodesListScreen::handleKeyPress(char key) {
         case 'A':
         case 'a':
             LOG_INFO("📡 NodesListScreen: Back button pressed");
-            // Will be handled by CustomUIModule for navigation back
-            return false;
+            if (customUIModule) {
+                customUIModule->getScreenManager()->navigateBack();
+            }
+            return true;
+
+        case '1':
+            // Send request to selected node or channel
+            {
+                int idx = getSelectedIndex();
+                if (idx < 0) return true;
+                
+                if (customUIModule) {
+                    T9InputScreen* t9 = customUIModule->getT9InputScreen();
+                    if (t9) {
+                        
+                        // CASE 1: CHANNEL SELECTED
+                        if (idx < static_cast<int>(channels.size())) {
+                            const ChannelHelperInfo& selectedCh = channels[idx];
+                            uint8_t chIndex = selectedCh.index;
+                            String chName = String(selectedCh.name);
+                            
+                            LOG_INFO("📡 NodesListScreen: Selected Channel: %s (%d)", chName.c_str(), chIndex);
+                            
+                            customUIModule->getScreenManager()->navigateToT9(t9, [chIndex](const String& text) {
+                                // Send message to channel (Broadcast)
+                                uint32_t packetId = LoRaHelper::sendMessage(text, UINT32_MAX, chIndex);
+                                
+                                if (packetId != 0) {
+                                     LOG_INFO("Message sent to Channel %d with Packet ID: %d", chIndex, packetId);
+                                }
+
+                                if (customUIModule) {
+                                    customUIModule->getScreenManager()->showPopup("Sent to Channel!", 1000);
+                                    customUIModule->getScreenManager()->navigateBack();
+                                }
+                            });
+                        }
+                        // CASE 2: NODE SELECTED
+                        else {
+                            int nodeIdx = idx - channels.size();
+                            if (nodeIdx >= 0 && nodeIdx < static_cast<int>(nodes.size())) {
+                                const NodeInfo& selectedNode = nodes[nodeIdx];
+                                uint32_t destNodeId = selectedNode.nodeNum;
+                                
+                                LOG_INFO("📡 NodesListScreen: Selected Node: 0x%08X", destNodeId);
+                                
+                                customUIModule->getScreenManager()->navigateToT9(t9, [destNodeId](const String& text) {
+                                    // Send direct message
+                                    uint32_t packetId = LoRaHelper::sendMessage(text, destNodeId, 0); 
+                                    
+                                    if (packetId != 0) {
+                                         LOG_INFO("Message sent to %08X with Packet ID: %d", destNodeId, packetId);
+                                    }
+
+                                    if (customUIModule) {
+                                        customUIModule->getScreenManager()->showPopup("Message Sent!", 1000);
+                                        customUIModule->getScreenManager()->navigateBack();
+                                    }
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+            return true;
             
         case '#':
             LOG_INFO("📡 NodesListScreen: Refreshing nodes list");
@@ -122,16 +191,18 @@ bool NodesListScreen::handleKeyPress(char key) {
 }
 
 void NodesListScreen::refreshNodesList() {
-    LOG_INFO("📡 NodesListScreen: Refreshing nodes list");
+    LOG_INFO("📡 NodesListScreen: Refreshing list");
     isLoading = true;
     
-    // Get nodes from LoRa helper
+    // Get nodes and channels
     std::vector<NodeInfo> newNodes = LoRaHelper::getNodesList(25, true);
+    std::vector<ChannelHelperInfo> newChannels = LoRaHelper::getChannelList();
     
-    // Only update if data actually changed
-    bool dataChanged = (newNodes.size() != nodes.size());
+    // Check if data changed
+    bool dataChanged = (newNodes.size() != nodes.size()) || (newChannels.size() != channels.size());
+    
     if (!dataChanged) {
-        // Check if any node data changed
+        // Check node data content
         for (size_t i = 0; i < newNodes.size() && i < nodes.size(); i++) {
             if (newNodes[i].nodeNum != nodes[i].nodeNum || 
                 newNodes[i].lastHeard != nodes[i].lastHeard ||
@@ -140,14 +211,18 @@ void NodesListScreen::refreshNodesList() {
                 break;
             }
         }
+        // Simplified check for channels (assuming they change less often)
     }
     
     if (dataChanged) {
         nodes = newNodes;
+        channels = newChannels;
+        
+        int totalItems = nodes.size() + channels.size();
         
         // Reset selection if current selection is out of bounds
-        if (getSelectedIndex() >= static_cast<int>(nodes.size())) {
-            setSelection(std::max(0, static_cast<int>(nodes.size()) - 1));
+        if (getSelectedIndex() >= totalItems) {
+            setSelection(std::max(0, totalItems - 1));
         }
         
         // Only invalidate list if data actually changed
@@ -156,19 +231,15 @@ void NodesListScreen::refreshNodesList() {
     }
     
     isLoading = false;
-    LOG_INFO("📡 NodesListScreen: Refresh completed, found %d nodes (changed: %s)", nodes.size(), dataChanged ? "yes" : "no");
+    LOG_INFO("📡 NodesListScreen: Refresh completed, %d channels, %d nodes", channels.size(), nodes.size());
 }
 
 void NodesListScreen::onItemSelected(int index) {
-    if (index >= 0 && index < static_cast<int>(nodes.size())) {
-        LOG_INFO("📡 NodesListScreen: Selected node: %s (0x%08x)", 
-            nodes[index].longName, nodes[index].nodeNum);
-        // TODO: Implement node selection/message functionality
-    }
+    // Handled in handleKeyPress
 }
 
 int NodesListScreen::getItemCount() {
-    return static_cast<int>(nodes.size());
+    return static_cast<int>(channels.size() + nodes.size());
 }
 
 void NodesListScreen::drawSignalBars(lgfx::LGFX_Device& tft, int x, int y, int bars) {
@@ -184,87 +255,145 @@ void NodesListScreen::drawSignalBars(lgfx::LGFX_Device& tft, int x, int y, int b
 }
 
 void NodesListScreen::drawItem(lgfx::LGFX_Device& tft, int index, int y, bool isSelected) {
-    if (index < 0 || index >= static_cast<int>(nodes.size())) {
+    if (index < 0 || index >= getItemCount()) {
         return; // Invalid index
     }
     
-    const NodeInfo& node = nodes[index];
-    
     // BaseListScreen needs COLOR_SELECTION constant
     static const uint16_t COLOR_SELECTION = 0x4208; // Dim green for selection
+    uint16_t bgColor = isSelected ? COLOR_SELECTION : COLOR_BLACK;
+
+    // Check if it's a channel or a node
+    if (index < static_cast<int>(channels.size())) {
+        // --- CHANNEL DRAWING ---
+        const ChannelHelperInfo& ch = channels[index];
+        
+        // Channel Icon/Type
+        tft.setTextColor(COLOR_YELLOW, bgColor);
+        tft.setTextSize(1);
+        tft.setCursor(8, y + 6); // Align with where signal bars would be
+        if (ch.isPrimary) {
+            tft.print("P");
+        } else if (ch.isSecondary) {
+            tft.print("S");
+        } else {
+            tft.print("#");
+        }
+        
+        // Channel Name
+        tft.setTextColor(isSelected ? 0xFFFF : COLOR_GREEN, bgColor);
+        tft.setCursor(30, y + 6);
+        tft.print(ch.name);
+        
+        // Channel Index (Right aligned)
+        tft.setTextColor(COLOR_DIM_GREEN, bgColor);
+        String idxStr = "Idx:" + String(ch.index);
+        int idxWidth = tft.textWidth(idxStr);
+        tft.setCursor(getContentWidth() - idxWidth - 5, y + 6);
+        tft.print(idxStr);
+        
+        return;
+    }
     
-    // Signal strength bars (first 20px)
-    drawSignalBars(tft, 8, y + 2, node.signalBars);
+    // --- NODE DRAWING ---
+    // Adjust index to map to nodes vector
+    int nodeIndex = index - channels.size();
+    if (nodeIndex >= static_cast<int>(nodes.size())) return;
     
-    // Node long name (main area) - use char array directly
+    const NodeInfo& node = nodes[nodeIndex];
+
+    // Signal strength bars (Vertical center aligned around y+12)
+    // Adjust y to center bars in 25px height
+    drawSignalBars(tft, 8, y + 6, node.signalBars);
+    
+    // Name Color Logic
     uint16_t textColor = isSelected ? 0xFFFF : COLOR_GREEN; // White when selected, green when not
     if (!node.isOnline) {
         textColor = isSelected ? 0xC618 : COLOR_DIM_GREEN; // Light grey when selected, dim green when not
     }
     
-    uint16_t bgColor = isSelected ? COLOR_SELECTION : COLOR_BLACK;
     tft.setTextColor(textColor, bgColor);
     tft.setTextSize(1);
     
-    // Create display name with truncation
-    char displayName[19]; // 18 chars + null
-    strncpy(displayName, node.longName, sizeof(displayName) - 1);
-    displayName[sizeof(displayName) - 1] = '\0';
+    // Layout Layout
+    int contentWidth = getContentWidth();
+    int rightEdge = contentWidth - 5;
+    int displayX = 30; // After signal bars
     
-    // Add ellipsis if truncated
-    size_t nameLen = strlen(node.longName);
-    if (nameLen > 15) {
-        strcpy(displayName + 15, "...");
-    }
+    // Right Side Info: distance/snr/time
+    // Prioritize Time, then SNR
     
-    tft.setCursor(35, y + 3);
-    tft.print(displayName);
-    
-    // Last heard time (second line)
+    // Time String
     String timeStr = formatTimeSince(node.lastHeard);
+    int timeWidth = tft.textWidth(timeStr);
+    
+    // Draw Time (Right Aligned, Top Line)
     uint16_t timeColor = node.isOnline ? COLOR_GREEN : COLOR_DIM_GREEN;
     if (isSelected) {
-        timeColor = node.isOnline ? 0xFFFF : 0xC618; // White or light grey when selected
+        timeColor = node.isOnline ? 0xFFFF : 0xC618;
     }
-    
     tft.setTextColor(timeColor, bgColor);
-    tft.setCursor(35, y + 12);
-    tft.setTextSize(1);
+    tft.setCursor(rightEdge - timeWidth, y + 4);
     tft.print(timeStr);
     
-    // Status indicators (right side)
-    int rightX = 250;
+    // Draw SNR (Right Aligned, Bottom Line)
+    // Small SNR display
+    String snrStr = "SNR:" + String(node.snr, 0); 
+    int snrWidth = tft.textWidth(snrStr);
     
-    // Favorite star
+    uint16_t snrColor = isSelected ? 0xC618 : COLOR_DIM_GREEN; 
+    tft.setTextColor(snrColor, bgColor);
+    tft.setCursor(rightEdge - snrWidth, y + 14);
+    tft.print(snrStr);
+
+    // Main Name (Left, Top Line)
+    // Calculate max width for name
+    int maxNameWidth = (rightEdge - std::max(timeWidth, snrWidth)) - displayX - 10;
+    
+    String displayName = String(node.longName);
+    
+    if (tft.textWidth(displayName) > maxNameWidth) {
+         String displayMsg = displayName;
+         while (displayMsg.length() > 0 && tft.textWidth(displayMsg + "..") > maxNameWidth) {
+             displayMsg.remove(displayMsg.length() - 1);
+         }
+         displayName = displayMsg + "..";
+    }
+    
+    tft.setTextColor(textColor, bgColor);
+    tft.setCursor(displayX, y + 4);
+    tft.print(displayName);
+    
+    // Bottom Line: Badges (Favorite, Internet, Hops)
+    int badgeX = displayX;
+    int badgeY = y + 14;
+    
+    // 1. Favorite
     if (node.isFavorite) {
         tft.setTextColor(COLOR_YELLOW, bgColor);
-        tft.setCursor(rightX, y + 6);
-        tft.print("*");
-        rightX += 10;
+        tft.setCursor(badgeX, badgeY);
+        tft.print("*Fav");
+        badgeX += 30;
     }
     
-    // Internet/MQTT indicator
+    // 2. Internet
     if (node.viaInternet) {
-        uint16_t indicatorColor = isSelected ? 0x87FF : COLOR_BLUE; // Cyan when selected, blue when not
+        uint16_t indicatorColor = isSelected ? 0x87FF : COLOR_BLUE; 
         tft.setTextColor(indicatorColor, bgColor);
-        tft.setCursor(rightX, y + 6);
-        tft.print("I");
-        rightX += 10;
+        tft.setCursor(badgeX, badgeY);
+        tft.print("MQTT");
+        badgeX += 30;
     }
     
-    // Hops indicator
+    // 3. Hops
     if (node.hopsAway > 0) {
-        uint16_t hopsColor = isSelected ? 0xFFFF : COLOR_DIM_GREEN; // White when selected
+        uint16_t hopsColor = isSelected ? 0xFFFF : COLOR_DIM_GREEN; 
         tft.setTextColor(hopsColor, bgColor);
-        tft.setCursor(rightX, y + 6);
-        tft.print(node.hopsAway);
+        tft.setCursor(badgeX, badgeY);
+        tft.print("Hop:" + String(node.hopsAway));
+    } else if (node.hopsAway == 0) {
+        // Direct
     }
-    
-    // SNR value (small, bottom right)
-    uint16_t snrColor = isSelected ? 0xC618 : COLOR_DIM_GREEN; // Light grey when selected
-    tft.setTextColor(snrColor, bgColor);
-    tft.setCursor(270, y + 12);
-    tft.print(node.snr, 1);
 }
 
 String NodesListScreen::formatTimeSince(uint32_t lastHeard) {

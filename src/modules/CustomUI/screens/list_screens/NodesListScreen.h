@@ -19,7 +19,7 @@ public:
     virtual ~NodesListScreen();
 
     // BaseListScreen interface  
-    virtual void onEnter() override;
+    virtual void onEnter(const NavigationContext& ctx) override;
     virtual void onExit() override;
     virtual bool handleKeyPress(char key) override;
 
@@ -46,7 +46,8 @@ private:
      */
     String formatTimeSince(uint32_t lastHeard);
 
-    // Node data
+    // Node and Channel data
+    std::vector<ChannelHelperInfo> channels;
     std::vector<NodeInfo> nodes;
     
     // UI state

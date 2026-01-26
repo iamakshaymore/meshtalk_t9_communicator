@@ -43,7 +43,7 @@ public:
     virtual ~SnakeGameScreen();
     
     // Screen lifecycle
-    virtual void onEnter() override;
+    virtual void onEnter(const NavigationContext& ctx) override;
     virtual void onExit() override;
     virtual void onDraw(lgfx::LGFX_Device& tft) override;
     virtual bool needsUpdate() const override;  // Override for continuous game updates

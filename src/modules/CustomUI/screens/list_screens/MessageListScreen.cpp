@@ -1,4 +1,6 @@
 #include "MessageListScreen.h"
+#include "modules/CustomUI/CustomUIModule.h"
+#include "../MessageDetailsScreen.h"
 #include "gps/RTC.h" // for getTime() function
 #include <Arduino.h>
 #include <algorithm>
@@ -8,28 +10,50 @@
 #define LOG_INFO(format, ...) Serial.printf("[INFO] " format "\n", ##__VA_ARGS__)
 #endif
 
-MessageListScreen::MessageListScreen() : BaseListScreen("Messages", 20) {
+MessageListScreen::MessageListScreen(MessageFilter filter) : BaseListScreen("Messages", 25), currentFilter(filter) {
     // Set navigation hints
     std::vector<NavHint> hints;
-    hints.push_back(NavHint('1', "Select"));
-    hints.push_back(NavHint('A', "Back"));
+    
+    // Customize title and hints based on filter
+    if (currentFilter.active) {
+        if (currentFilter.onlyOutgoing) {
+            // No select/reply for sent messages
+            hints.push_back(NavHint('A', "Back"));
+        } else if (currentFilter.onlyIncomingDMs) {
+            hints.push_back(NavHint('1', "Select"));
+            hints.push_back(NavHint('A', "Back"));
+        } else if (currentFilter.channelIndex != -1) {
+            char titleBuf[20];
+            snprintf(titleBuf, sizeof(titleBuf), "Channel %d", currentFilter.channelIndex);
+            hints.push_back(NavHint('1', "Select"));
+            hints.push_back(NavHint('A', "Back"));
+        } else {
+             hints.push_back(NavHint('1', "Select"));
+             hints.push_back(NavHint('A', "Back"));
+        }
+    } else {
+        // Default View
+        hints.push_back(NavHint('1', "Select"));
+        hints.push_back(NavHint('A', "Back"));
+    }
+    
     setNavigationHints(hints);
     
     isLoading = false;
     lastRefreshTime = 0;
     
-    LOG_INFO("💬 MessageListScreen: Created");
+    LOG_INFO("💬 MessageListScreen: Created with filter active=%d", filter.active);
 }
 
 MessageListScreen::~MessageListScreen() {
     LOG_INFO("💬 MessageListScreen: Destroyed");
 }
 
-void MessageListScreen::onEnter() {
+void MessageListScreen::onEnter(const NavigationContext& ctx) {
     LOG_INFO("💬 MessageListScreen: Entering screen");
     
-    // Call parent onEnter
-    BaseListScreen::onEnter();
+    // Call parent onEnter to preserve selection
+    BaseListScreen::onEnter(ctx);
     
     // Initialize message state
     messages.clear();
@@ -106,14 +130,23 @@ bool MessageListScreen::handleKeyPress(char key) {
     switch (key) {
         case '1':
             LOG_INFO("💬 MessageListScreen: Details button pressed");
-            // Don't handle '1' here, let CustomUIModule handle navigation
-            return false;
+            if (customUIModule && hasValidSelection()) {
+                MessageInfo msg = getSelectedMessage();
+                MessageDetailsScreen* details = customUIModule->getMessageDetailsScreen();
+                if (details) {
+                    details->setMessage(msg);
+                    customUIModule->getScreenManager()->navigateTo(details);
+                }
+            }
+            return true;
             
         case 'A':
         case 'a':
             LOG_INFO("💬 MessageListScreen: Back button pressed");
-            // Will be handled by CustomUIModule for navigation back
-            return false;
+            if (customUIModule) {
+                customUIModule->getScreenManager()->navigateBack();
+            }
+            return true;
             
         case '#':
             LOG_INFO("💬 MessageListScreen: Refreshing message list");
@@ -130,8 +163,62 @@ void MessageListScreen::refreshMessageList() {
     LOG_INFO("💬 MessageListScreen: Refreshing message list");
     isLoading = true;
     
-    // Get messages from LoRa helper
-    std::vector<MessageInfo> newMessages = LoRaHelper::getRecentMessages(15);
+    // Get messages from LoRa helper (fetch up to 100 messages)
+    int fetchCount = 100;
+    std::vector<MessageInfo> fetchedMessages = LoRaHelper::getRecentMessages(fetchCount);
+    std::vector<MessageInfo> newMessages;
+    
+    // Apply filters if active
+    if (currentFilter.active) {
+        for (const auto& msg : fetchedMessages) {
+            bool matches = true;
+            
+            // Filter 1: Only sent messages
+            if (currentFilter.onlyOutgoing && !msg.isOutgoing) {
+                matches = false;
+            }
+            
+            // Filter 2: Only Incoming DMs
+            if (currentFilter.onlyIncomingDMs) {
+                // strict interpretation: must be incoming AND a direct message
+                if (msg.isOutgoing || !msg.isDirectMessage) {
+                    matches = false;
+                }
+            }
+            
+            // Filter 2b: All DMs (Incoming and Outgoing)
+            if (currentFilter.onlyDMs) {
+                if (!msg.isDirectMessage) {
+                    matches = false;
+                }
+            }
+            
+            // Filter 3: Channel Index
+            if (currentFilter.channelIndex != -1) {
+                // Must match channel index
+                if (msg.channelIndex != currentFilter.channelIndex) {
+                    matches = false;
+                }
+                
+                // Exclude DMs from Channel views (they belong in "Direct Messages" or "Outbox")
+                // Channel views are for Broadcasts/Group Chats
+                if (msg.isDirectMessage) {
+                    matches = false;
+                }
+            }
+            
+            if (matches) {
+                newMessages.push_back(msg);
+            }
+            
+            // Limit to reasonable list size
+            if (newMessages.size() >= 100) break;
+        }
+    } else {
+        newMessages = fetchedMessages;
+         // Limit to reasonable list size
+        if (newMessages.size() > 100) newMessages.resize(100);
+    }
     
     // Only update if data actually changed
     bool dataChanged = (newMessages.size() != messages.size());
@@ -139,7 +226,8 @@ void MessageListScreen::refreshMessageList() {
         // Check if any message data changed
         for (size_t i = 0; i < newMessages.size() && i < messages.size(); i++) {
             if (newMessages[i].timestamp != messages[i].timestamp || 
-                strcmp(newMessages[i].text, messages[i].text) != 0) {
+                strcmp(newMessages[i].text, messages[i].text) != 0 || 
+                newMessages[i].ackReceived != messages[i].ackReceived) {
                 dataChanged = true;
                 break;
             }
@@ -186,53 +274,99 @@ void MessageListScreen::drawItem(lgfx::LGFX_Device& tft, int index, int y, bool 
     // Background color
     uint16_t bgColor = isSelected ? COLOR_SELECTION : COLOR_BLACK;
     
-    // Message type indicator (first 15px) - Green for DM, Red for Channel
-    uint16_t typeColor = msg.isDirectMessage ? COLOR_GREEN : COLOR_RED;
-    if (isSelected) {
-        typeColor = msg.isDirectMessage ? 0xFFFF : 0xFFFF; // White when selected
+    // Draw Outgoing/Incoming indicator
+    if (msg.isOutgoing) {
+         // > for outgoing. Green if ACKed, Red if not.
+         uint16_t indicatorColor = msg.ackReceived ? COLOR_GREEN : COLOR_RED;
+         tft.setTextColor(indicatorColor, bgColor);
+         tft.setCursor(5, y + 5);
+         tft.print(">");
+    } else {
+         // < for incoming (or standard dot/box) - using dot color logic
+         uint16_t typeColor = msg.isDirectMessage ? COLOR_GREEN : COLOR_RED;
+         if (isSelected) {
+            typeColor = msg.isDirectMessage ? 0xFFFF : 0xFFFF; // White when selected
+         }
+         tft.fillRect(5, y + 7, 4, 4, typeColor);
     }
     
-    tft.fillRect(5, y + 5, 8, 8, typeColor);
-    
-    // Sender name (main area)
-    uint16_t textColor = isSelected ? 0xFFFF : (msg.isDirectMessage ? COLOR_GREEN : COLOR_RED);
+    // Sender name / Destination (main area)
+    uint16_t textColor = isSelected ? 0xFFFF : (msg.isOutgoing ? COLOR_YELLOW : (msg.isDirectMessage ? COLOR_GREEN : COLOR_RED));
     tft.setTextColor(textColor, bgColor);
     tft.setTextSize(1);
     
-    // Create display name with channel info
+    // Create display name
     String displayName;
-    if (msg.isDirectMessage) {
-        displayName = String(msg.senderName) +"[DM]";
+    
+    if (msg.isOutgoing) {
+        if (msg.isDirectMessage) {
+              // Outgoing DMs now store Recipient Name in senderName field
+              displayName = "To: " + String(msg.senderName); 
+        } else {
+             displayName = "To: " + String(msg.channelName);
+        }
     } else {
-        displayName = String(msg.senderName)+"["+String(msg.channelName)+"]";
+        if (msg.isDirectMessage) {
+            displayName = String(msg.senderName) + "[DM]";
+        } else {
+            displayName = String(msg.senderName) + "[" + String(msg.channelName) + "]";
+        }
     }
     
-    // Truncate if too long
-    if (displayName.length() > 18) {
-        displayName = displayName.substring(0, 15) + "...";
-    }
+    // Layout Calculation
+    int contentWidth = getContentWidth();
+    int rightEdge = contentWidth - 5;
+    int displayX = 15;
+
+    // Line 1: Name (Left) ... Time (Right)
     
-    tft.setCursor(20, y + 3);
-    tft.print(displayName);
-    
-    // Time ago (second line)
+    // Time String
     String timeStr = formatTimeSince(msg.timestamp);
-    uint16_t timeColor = isSelected ? 0xC618 : COLOR_DIM_GREEN; // Light grey when selected
+    int timeWidth = tft.textWidth(timeStr);
     
+    // Draw Time (Right Aligned)
+    uint16_t timeColor = isSelected ? 0xC618 : COLOR_DIM_GREEN; // Light grey when selected
     tft.setTextColor(timeColor, bgColor);
-    tft.setCursor(20, y + 12);
-    tft.setTextSize(1);
+    tft.setCursor(rightEdge - timeWidth, y + 4);
     tft.print(timeStr);
     
-    // Message preview (right side)
+    // Draw Name (Left Aligned)
+    // Calculate max width for name to avoid overlapping time
+    int maxNameWidth = (rightEdge - timeWidth) - displayX - 10;
+    
+    // Truncate name if too long
+    if (tft.textWidth(displayName) > maxNameWidth) {
+         String displayMsg = displayName;
+         while (displayMsg.length() > 0 && tft.textWidth(displayMsg + "..") > maxNameWidth) {
+             displayMsg.remove(displayMsg.length() - 1);
+         }
+         displayName = displayMsg + "..";
+    }
+    
+    tft.setTextColor(textColor, bgColor);
+    tft.setCursor(displayX, y + 4); 
+    tft.print(displayName);
+    
+    // Line 2: Message preview
     String messageText = String(msg.text);
-    if (messageText.length() > 15) {
-        messageText = messageText.substring(0, 12) + "...";
+    
+    // Fix: Replace line breaks to prevent overflow
+    messageText.replace("\n", " ");
+    messageText.replace("\r", " ");
+    
+    int maxMsgWidth = rightEdge - displayX;
+    
+    if (tft.textWidth(messageText) > maxMsgWidth) {
+        String displayMsg = messageText;
+        while (displayMsg.length() > 0 && tft.textWidth(displayMsg + "...") > maxMsgWidth) {
+             displayMsg.remove(displayMsg.length() - 1);
+        }
+        messageText = displayMsg + "...";
     }
     
     uint16_t msgColor = isSelected ? 0xFFFF : 0xCCCC; // White when selected, light gray otherwise
     tft.setTextColor(msgColor, bgColor);
-    tft.setCursor(160, y + 7);
+    tft.setCursor(displayX, y + 14);
     tft.print(messageText);
 }
 
@@ -279,3 +413,4 @@ String MessageListScreen::formatTimeSince(uint32_t timestamp) {
         return String(days) + "d ago";
     }
 }
+

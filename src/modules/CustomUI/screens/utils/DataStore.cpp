@@ -52,6 +52,20 @@ void DataStore::addMessage(const MessageInfo& message) {
     }
 }
 
+void DataStore::ackReceived(uint32_t messageId) {
+    if (messages.empty()) {
+        return;
+    }
+
+    for (auto& msg : messages) {
+        if (msg.messageId == messageId) {
+            msg.ackReceived = true;
+            LOG_INFO("🔧 DATASTORE: Acknowledged message ID %u", messageId);
+            return;
+        }
+    }
+}
+
 std::vector<MessageInfo> DataStore::getRecentMessages(int maxMessages) const {
     if (messages.empty()) {
         return std::vector<MessageInfo>();
@@ -118,6 +132,35 @@ void DataStore::sortMessagesByTimestamp() const {
     
     needsSort = false;
     LOG_DEBUG("🔧 DATASTORE: Sorted %d messages by timestamp", messages.size());
+}
+
+std::vector<uint8_t> DataStore::getActiveChannelIndexes() const {
+    std::vector<uint8_t> channels;
+    if (messages.empty()) {
+        return channels;
+    }
+    
+    // Iterate through messages and collect unique channel indexes
+    for (const auto& msg : messages) {
+        // Skip DMs, only care about broadcast channels
+        if (!msg.isDirectMessage) {
+            bool found = false;
+            for (uint8_t ch : channels) {
+                if (ch == msg.channelIndex) {
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                channels.push_back(msg.channelIndex);
+            }
+        }
+    }
+    
+    // Sort channels
+    std::sort(channels.begin(), channels.end());
+    
+    return channels;
 }
 
 void DataStore::enforceMaxSize() {

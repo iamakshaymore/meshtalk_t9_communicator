@@ -18,8 +18,8 @@ BaseListScreen::BaseListScreen(const String& screenName, int itemHeight)
     needsScrollUpdate = true;
     
     // Calculate layout
-    listStartY = getContentY() + 5; // Small padding from content area
-    listHeight = getContentHeight() - 10; // Leave padding at bottom
+    listStartY = getContentY() + 2.5; // Small padding from content area
+    listHeight = getContentHeight() - 2.5; // Leave padding at bottom
     maxVisibleItems = listHeight / itemHeight;
     
     LOG_INFO("🔧 BaseListScreen '%s': Created (itemHeight=%d, maxVisible=%d)", 
@@ -30,29 +30,29 @@ BaseListScreen::~BaseListScreen() {
     LOG_INFO("🔧 BaseListScreen '%s': Destroyed", name.c_str());
 }
 
-void BaseListScreen::onEnter() {
-    LOG_INFO("🔧 BaseListScreen '%s': Entering screen", name.c_str());
+void BaseListScreen::onEnter(const NavigationContext& ctx) {
+    LOG_INFO("🔧 BaseListScreen '%s': Entering screen (isBack=%d)", name.c_str(), ctx.isBack);
     
-    // Reset list state for fresh entry
-    selectedIndex = 0;
-    scrollOffset = 0;
-    lastSelectedIndex = -1;
+    // Reset list state ONLY for fresh entry
+    if (!ctx.isBack) {
+        selectedIndex = 0;
+        scrollOffset = 0;
+        lastSelectedIndex = -1;
+    }
+    
+    // Always trigger redraw
     selectionChanged = false;
     needsListRedraw = true;
     needsScrollUpdate = true;
-    
-    // Force redraw to show screen immediately
-    forceRedraw();
 }
 
 void BaseListScreen::onExit() {
     LOG_INFO("🔧 BaseListScreen '%s': Exiting screen", name.c_str());
     
-    // Reset state
-    selectedIndex = 0;
-    scrollOffset = 0;
-    lastSelectedIndex = -1;
-    selectionChanged = false;
+    // We do NOT reset state here anymore. 
+    // State reset is handled in onEnter(isBack=false).
+    // This allows preserving selection when navigating deeper and coming back.
+    
     needsListRedraw = false;
     needsScrollUpdate = false;
 }
@@ -182,6 +182,7 @@ void BaseListScreen::scrollUp() {
             LOG_INFO("🔧 BaseListScreen: scrollUp - new selectedIndex: %d", selectedIndex);
         }
         selectionChanged = true;
+        forceRedraw();
     }
 }
 
@@ -209,6 +210,7 @@ void BaseListScreen::scrollDown() {
             LOG_INFO("🔧 BaseListScreen: scrollDown - new selectedIndex: %d", selectedIndex);
         }
         selectionChanged = true;
+        forceRedraw();
     }
 }
 
@@ -218,6 +220,7 @@ void BaseListScreen::setSelection(int index) {
         selectedIndex = index;
         selectionChanged = true;
         needsScrollUpdate = true;
+        forceRedraw();
         LOG_INFO("🔧 BaseListScreen: Selection set to: %d", selectedIndex);
     }
 }

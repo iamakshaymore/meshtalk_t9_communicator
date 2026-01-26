@@ -1,4 +1,5 @@
 #include "SnakeGameScreen.h"
+#include "modules/CustomUI/CustomUIModule.h"
 #include "configuration.h"
 
 SnakeGameScreen::SnakeGameScreen() 
@@ -32,24 +33,29 @@ SnakeGameScreen::~SnakeGameScreen() {
     LOG_INFO("🐍 SnakeGameScreen destroyed");
 }
 
-void SnakeGameScreen::onEnter() {
+void SnakeGameScreen::onEnter(const NavigationContext& ctx) {
     LOG_INFO("🐍 Entering Snake Game screen");
     
     // Initialize or reset game
     if (firstDraw) {
         initializeGame();
         firstDraw = false;
-    } else {
+    } else if (!ctx.isBack) {
+        // Only reset if fresh entry
         resetGame();
+    } else {
+        // If resuming, maybe unpause? Or keep paused.
+        // For now, let's ensure we redraw.
+        fullRedrawNeeded = true;
     }
     
     gameStartTime = millis();
     fullRedrawNeeded = true;
-    forceRedraw();
 }
 
 void SnakeGameScreen::onExit() {
     LOG_INFO("🐍 Exiting Snake Game screen");
+    gameState = GameState::PAUSED;
 }
 
 bool SnakeGameScreen::needsUpdate() const {
@@ -137,7 +143,10 @@ bool SnakeGameScreen::handleKeyPress(char key) {
     
     // Handle global navigation
     if (key == 'A' || key == 'a') {
-        return false; // Let global navigation handle return to home
+        if (customUIModule) {
+            customUIModule->getScreenManager()->navigateBack();
+        }
+        return true; 
     }
     
     return true; // Key handled by game
@@ -402,6 +411,9 @@ void SnakeGameScreen::handleGameOverInput(char key) {
         case '*': // Restart  
             resetGame();
             break;
+        case 'A': // Navigation handled by main handler
+        case 'a':
+            break;        
         default:
             // Any key restarts
             resetGame();

@@ -4,6 +4,7 @@
 #include "NodeDB.h"
 #include "mesh/MeshService.h"
 #include "mesh/MeshTypes.h"
+#include "mesh/Channels.h"
 #include "mesh/Router.h"
 #include "mesh/generated/meshtastic/mesh.pb.h"
 #include "gps/RTC.h" // for getTime() function
@@ -13,6 +14,7 @@
 extern meshtastic_DeviceState devicestate;
 extern MeshService *service;
 extern Router *router;
+extern Channels channels;
 
 // Static member initialization
 String LoRaHelper::lastLongName = "";
@@ -300,26 +302,33 @@ String LoRaHelper::formatTimeAgo(uint32_t timestamp) {
     }
 }
 
-bool LoRaHelper::sendMessage(const String& messageText, uint32_t toNodeId, uint8_t channelIndex) {
+// bool LoRaHelper::sendMessage(const String& messageText, uint32_t toNodeId, uint8_t channelIndex) {
+//    return sendMessage(messageText, toNodeId, channelIndex) != 0;
+//}
+
+uint32_t LoRaHelper::sendMessage(const String& messageText, uint32_t toNodeId, uint8_t channelIndex) {
     if (messageText.length() == 0) {
-        return false; // Cannot send empty message
+        return 0; // Cannot send empty message
     }
     
     if (!service || !router) {
-        return false; // MeshService or Router not available
+        return 0; // MeshService or Router not available
     }
     
     // Create text message packet using Router
     auto packet = router->allocForSending();
     if (!packet) {
-        return false; // Failed to allocate packet
+        return 0; // Failed to allocate packet
     }
     
+    // Capture packet ID before we lose ownership
+    uint32_t packetId = packet->id;
+
     // Set up the packet for TEXT_MESSAGE_APP
     packet->decoded.portnum = meshtastic_PortNum_TEXT_MESSAGE_APP;
     packet->to = toNodeId;
     packet->channel = channelIndex;
-    packet->want_ack = false; // Text messages typically don't need acks
+    packet->want_ack = true; // Request ACK to track delivery
     
     // Set message content
     const char* messageStr = messageText.c_str();
@@ -334,6 +343,93 @@ bool LoRaHelper::sendMessage(const String& messageText, uint32_t toNodeId, uint8
     
     // Send via mesh service
     service->sendToMesh(packet);
+
+    // Save sent message to DataStore
+    MessageInfo sentMsg;
     
-    return true;
+    // Copy message text
+    size_t textLen = std::min((size_t)messageText.length(), sizeof(sentMsg.text) - 1);
+    memcpy(sentMsg.text, messageText.c_str(), textLen);
+    sentMsg.text[textLen] = '\0';
+    
+    // Set Sender Name (Stores Recipient Name for Outgoing DMs for display purposes)
+    bool isDirectMsg = (toNodeId != UINT32_MAX && toNodeId != NODENUM_BROADCAST);
+    
+    if (isDirectMsg && nodeDB) {
+         const auto* node = nodeDB->getMeshNode(toNodeId);
+         if (node && node->has_user && strlen(node->user.long_name) > 0) {
+             strncpy(sentMsg.senderName, node->user.long_name, sizeof(sentMsg.senderName) - 1);
+         } else if (node && node->has_user && strlen(node->user.short_name) > 0) {
+              strncpy(sentMsg.senderName, node->user.short_name, sizeof(sentMsg.senderName) - 1);
+         } else {
+              // Fallback to hex ID of recipient
+              snprintf(sentMsg.senderName, sizeof(sentMsg.senderName), "!%08X", toNodeId);
+         }
+    } else {
+        strcpy(sentMsg.senderName, "Me"); 
+    }
+    sentMsg.senderName[sizeof(sentMsg.senderName) - 1] = '\0';
+    
+    // Set properties
+    uint32_t now = getTime();
+    if (now == 0) now = millis() / 1000;
+    sentMsg.timestamp = now;
+
+    if (nodeDB) {
+        sentMsg.senderNodeId = nodeDB->getNodeNum();
+    } else {
+        sentMsg.senderNodeId = 0;
+    }
+    sentMsg.toNodeId = toNodeId;
+    sentMsg.messageId = packetId;
+    sentMsg.channelIndex = channelIndex;
+    sentMsg.isOutgoing = true;
+    sentMsg.isDirectMessage = (toNodeId != UINT32_MAX && toNodeId != NODENUM_BROADCAST);
+    sentMsg.ackReceived = false;
+    sentMsg.isValid = true;
+    
+    // Set channel name
+    if (sentMsg.isDirectMessage) {
+        strcpy(sentMsg.channelName, "DM");
+    } else if (sentMsg.channelIndex == 0) {
+        strcpy(sentMsg.channelName, "Primary");
+    } else {
+        snprintf(sentMsg.channelName, sizeof(sentMsg.channelName), "CH%d", sentMsg.channelIndex);
+    }
+    
+    // Add to DataStore
+    DataStore::getInstance().addMessage(sentMsg);
+    
+    return packetId;
+}
+
+std::vector<ChannelHelperInfo> LoRaHelper::getChannelList() {
+    std::vector<ChannelHelperInfo> list;
+    if (!initialized) init();
+
+    // Iterate through all possible channels
+    for (int i = 0; i < MAX_NUM_CHANNELS; i++) {
+        meshtastic_Channel& ch = channels.getByIndex(i);
+        
+        // Only include active channels
+        if (ch.role != meshtastic_Channel_Role_DISABLED) {
+             ChannelHelperInfo info;
+             info.index = i;
+             
+             // Get channel name
+             const char* name = channels.getName(i);
+             if (name) {
+                 strncpy(info.name, name, sizeof(info.name) - 1);
+                 info.name[sizeof(info.name) - 1] = '\0';
+             } else {
+                 snprintf(info.name, sizeof(info.name), "Ch %d", i);
+             }
+             
+             info.isPrimary = (i == channels.getPrimaryIndex());
+             info.isSecondary = (ch.role == meshtastic_Channel_Role_SECONDARY); 
+             
+             list.push_back(info);
+        }
+    }
+    return list;
 }

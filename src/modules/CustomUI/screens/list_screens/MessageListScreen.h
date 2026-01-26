@@ -4,6 +4,24 @@
 #include "../utils/LoRaHelper.h"
 #include <vector>
 
+struct MessageFilter {
+    bool active;
+    bool onlyOutgoing;
+    bool onlyIncomingDMs;
+    bool onlyDMs;
+    int8_t channelIndex; // -1 for any
+
+    MessageFilter() : active(false), onlyOutgoing(false), onlyIncomingDMs(false), onlyDMs(false), channelIndex(-1) {}
+    
+    void reset() {
+        active = false;
+        onlyOutgoing = false;
+        onlyIncomingDMs = false;
+        onlyDMs = false;
+        channelIndex = -1;
+    }
+};
+
 /**
  * Message List Screen - Shows recent mesh messages
  * Features:
@@ -15,11 +33,11 @@
  */
 class MessageListScreen : public BaseListScreen {
 public:
-    MessageListScreen();
+    MessageListScreen(MessageFilter filter = MessageFilter());
     virtual ~MessageListScreen();
 
     // BaseListScreen interface  
-    virtual void onEnter() override;
+    virtual void onEnter(const NavigationContext& ctx) override;
     virtual void onExit() override;
     virtual bool handleKeyPress(char key) override;
 
@@ -34,6 +52,15 @@ public:
      * @return true if a message is selected and valid
      */
     bool hasValidSelection() const;
+
+    /**
+     * Set the message filter
+     * @param filter The filter to apply
+     */
+    void setFilter(const MessageFilter& filter) {
+        currentFilter = filter;
+        refreshMessageList();
+    }
 
 protected:
     // BaseListScreen abstract methods
@@ -55,6 +82,7 @@ private:
 
     // Message data
     std::vector<MessageInfo> messages;
+    MessageFilter currentFilter;
     
     // UI state
     bool isLoading;         // Currently loading flag

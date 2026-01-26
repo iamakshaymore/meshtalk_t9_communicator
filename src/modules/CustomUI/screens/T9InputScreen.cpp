@@ -1,4 +1,5 @@
 #include "T9InputScreen.h"
+#include "modules/CustomUI/CustomUIModule.h"
 #include "BaseScreen.h"
 #include "configuration.h"
 
@@ -43,21 +44,23 @@ T9InputScreen::~T9InputScreen() {
     clearInput();
 }
 
-void T9InputScreen::onEnter() {
+void T9InputScreen::onEnter(const NavigationContext& ctx) {
     LOG_INFO("📱 T9InputScreen: Entering T9 input mode");
     
-    // Reset input state
-    currentKey = '\0';
-    currentKeyPresses = 0;
-    lastKeyTime = 0;
-    hasCurrentChar = false;
+    // Reset input state (always? or only if !isBack?)
+    // T9 is usually transient, but if we came back to it?
+    // Usually T9 doesn't go forward, only back.
+    
+    if (!ctx.isBack) {
+        currentKey = '\0';
+        currentKeyPresses = 0;
+        lastKeyTime = 0;
+        hasCurrentChar = false;
+    }
     
     // Mark content areas for redraw
     inputTextDirty = true;
     labelDirty = true;
-    
-    // Force full screen redraw including BaseScreen's header/footer
-    forceRedraw();
 }
 
 void T9InputScreen::onExit() {
@@ -105,8 +108,11 @@ bool T9InputScreen::handleKeyPress(char key) {
     switch (key) {
         case 'A':
         case 'a':
-            // Cancel/Back - don't call callback, just return false to let module handle navigation
-            return false;
+            // Cancel/Back
+            if (customUIModule) {
+                customUIModule->getScreenManager()->navigateBack();
+            }
+            return true;
             
         case '#':
             // Confirm/Send
@@ -122,12 +128,10 @@ bool T9InputScreen::handleKeyPress(char key) {
             if (onConfirm && inputText.length() > 0) {
                 String finalText = inputText;
                 LOG_INFO("📱 T9InputScreen: Confirming input: '%s'", finalText.c_str());
+                clearInput();
                 onConfirm(finalText);
-            } else {
-                LOG_INFO("📱 T9InputScreen: Cannot confirm - onConfirm: %s, text length: %d", 
-                         onConfirm ? "set" : "null", inputText.length());
             }
-            return false; // Let module handle screen switch
+            return true; // We handled it (callback should handle nav)
             
         case '*':
             // Backspace

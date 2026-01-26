@@ -15,6 +15,8 @@
 #include "init/InitKeypad.h"
 #include "screens/BaseScreen.h"
 #include "screens/HomeScreen.h"
+#include "screens/menu_screens/MainMenuScreen.h"
+#include "screens/menu_screens/MessagesMenuScreen.h"
 #include "screens/list_screens/NodesListScreen.h"
 #include "screens/list_screens/MessageListScreen.h"
 #include "screens/MessageDetailsScreen.h"
@@ -27,11 +29,13 @@
 #include "sleep.h"
 #include <LovyanGFX.hpp>
 #include <Arduino.h>
+#include <pb_decode.h>
 
 #ifdef ESP32
 #include <esp_heap_caps.h>
 #include <esp_heap_caps_init.h>
 #endif
+#include <RTC.h>
 
 CustomUIModule *customUIModule;
 
@@ -45,9 +49,12 @@ CustomUIModule::CustomUIModule()
       keypad(nullptr),
       currentScreen(nullptr),
       homeScreen(nullptr),
+      menuScreen(nullptr),
       nodesListScreen(nullptr),
       messageListScreen(nullptr),
       messageDetailsScreen(nullptr),
+      messagesScreen(nullptr),
+      messagesMenuScreen(nullptr),
       snakeGameScreen(nullptr),
       t9InputScreen(nullptr),
       isSplashActive(false),
@@ -80,6 +87,16 @@ CustomUIModule::~CustomUIModule() {
     if (homeScreen) {
         delete homeScreen;
         homeScreen = nullptr;
+    }
+
+    if (menuScreen) {
+        delete menuScreen;
+        menuScreen = nullptr;
+    }
+
+    if (messagesMenuScreen) {
+        delete messagesMenuScreen;
+        messagesMenuScreen = nullptr;
     }
     
     if (nodesListScreen) {
@@ -202,6 +219,11 @@ void CustomUIModule::connectComponents() {
         keypad = keypadInit->getKeypad();
         LOG_INFO("🔧 CUSTOM UI: Keypad connected");
     }
+    
+    // Initialize ScreenManager with display capability
+    if (tft) {
+        screenManager.init(tft);
+    }
 }
 
 void CustomUIModule::showSplashScreen() {
@@ -229,6 +251,12 @@ void CustomUIModule::initScreens() {
     // Create home screen
     homeScreen = new HomeScreen();
 
+    // Create menu screen
+    menuScreen = new MainMenuScreen();
+
+    // Create messages menu screen
+    messagesMenuScreen = new MessagesMenuScreen();
+
     // Create nodes list screen
     nodesListScreen = new NodesListScreen();
 
@@ -246,8 +274,9 @@ void CustomUIModule::initScreens() {
 
     // Create T9 input screen
     t9InputScreen = new T9InputScreen();
-    t9InputScreen->setConfirmCallback([this](const String& text) {
-        this->onT9InputConfirm(text);
+    // Default callback - specific screens should override this via ScreenManager::navigateToT9
+    t9InputScreen->setConfirmCallback([](const String& text) {
+        LOG_WARN("🔧 CUSTOM UI: T9 input confirmed but no handler set");
     });
 
     // Screens are ready but don't switch yet - animation will handle transition
@@ -275,12 +304,16 @@ int32_t CustomUIModule::runOnce() {
             
             // Switch to home screen
             if (homeScreen) {
-                switchToScreen(homeScreen);
+                // Use the screen manager directly
+                screenManager.navigateTo(homeScreen);
             }
         }
         
         return 20; // Update every 20ms for smooth animation and responsive input
     }
+    
+    // Get current screen from manager
+    currentScreen = screenManager.getCurrentScreen();
     
     if (!currentScreen || !tft) {
         return 1000; // Wait 1 second if no screen ready
@@ -288,6 +321,11 @@ int32_t CustomUIModule::runOnce() {
     
     // Handle keypad input first (needed to wake display)
     checkKeypadInput();
+
+    // Refresh current screen in case navigation happened
+    currentScreen = screenManager.getCurrentScreen();
+    // Re-check validity after potential navigation
+    if (!currentScreen) return 1000;
     
     // Check for display sleep timeout
     checkDisplaySleep();
@@ -310,10 +348,43 @@ bool CustomUIModule::wantUIFrame() {
 }
 
 
+bool CustomUIModule::wantPacket(const meshtastic_MeshPacket *p) {
+    return p->decoded.portnum == meshtastic_PortNum_TEXT_MESSAGE_APP || 
+           p->decoded.portnum == meshtastic_PortNum_ROUTING_APP;
+}
+
 // Handle incoming LoRa messages and show MessagesScreen
 ProcessMessage CustomUIModule::handleReceived(const meshtastic_MeshPacket &mp) {
+    // Handle ACK messages (ROUTING_APP with Error::NONE)
+    if (mp.decoded.portnum == meshtastic_PortNum_ROUTING_APP) {
+        meshtastic_Routing routingMsg;
+        LOG_INFO("🔧 CUSTOM UI: Decoding ROUTING_APP message from node %08X", mp.from);
+        // Decode the routing payload
+        pb_istream_t stream = pb_istream_from_buffer(mp.decoded.payload.bytes, mp.decoded.payload.size);
+        if (pb_decode(&stream, meshtastic_Routing_fields, &routingMsg)) {
+             // Check if it's an ACK (Success error code)
+             if (routingMsg.which_variant == meshtastic_Routing_error_reason_tag && 
+                 routingMsg.error_reason == meshtastic_Routing_Error_NONE) {
+                 
+                 // The ACKed message ID is in the Data packet's request_id field
+                 uint32_t ackedMessageId = mp.decoded.request_id;
+                 
+                 if (ackedMessageId != 0) {
+                     LOG_INFO("ACK received for message ID %u", ackedMessageId);
+                     DataStore::getInstance().ackReceived(ackedMessageId);
+                 }
+             }
+        }
+        return ProcessMessage::CONTINUE;
+    }
+
     // Only handle text messages (TEXT_MESSAGE_APP)
     if (mp.decoded.portnum == meshtastic_PortNum_TEXT_MESSAGE_APP) {
+        // Ignore messages from self
+        if (nodeDB && mp.from == nodeDB->getNodeNum()) {
+            return ProcessMessage::CONTINUE; 
+        }
+
         // Wake display if asleep
         if (displayAsleep) {
             wakeDisplay();
@@ -360,9 +431,13 @@ ProcessMessage CustomUIModule::handleReceived(const meshtastic_MeshPacket &mp) {
             messageInfo.senderName[sizeof(messageInfo.senderName) - 1] = '\0';
             
             // Set message properties
-            messageInfo.timestamp = mp.rx_time > 0 ? mp.rx_time : (millis() / 1000);
+            uint32_t now = getTime();
+            if (now == 0) now = millis() / 1000;
+            messageInfo.timestamp = now;
+            //messageInfo.timestamp = mp.rx_time > 0 ? mp.rx_time : now;
             messageInfo.senderNodeId = mp.from;
             messageInfo.toNodeId = mp.to;
+            messageInfo.messageId = mp.id;
             messageInfo.channelIndex = mp.channel;
             messageInfo.isOutgoing = (nodeDB && mp.from == nodeDB->getNodeNum());
             
@@ -387,7 +462,7 @@ ProcessMessage CustomUIModule::handleReceived(const meshtastic_MeshPacket &mp) {
             if (messagesScreen) {
                 unsigned long timestamp = millis();
                 messagesScreen->addMessage(text, sender, timestamp);
-                switchToScreen(static_cast<BaseScreen*>(messagesScreen));
+                screenManager.navigateTo(messagesScreen);
             }
         }
     }
@@ -429,38 +504,6 @@ void CustomUIModule::updateSplashAnimation() {
     }
 }
 
-// ========== Screen Navigation ==========
-void CustomUIModule::switchToScreen(BaseScreen* newScreen) {
-    if (!newScreen || newScreen == currentScreen) {
-        return;
-    }
-    
-    // Exit current screen
-    if (currentScreen) {
-        currentScreen->onExit();
-    }
-    
-    // Force display buffer clearing
-    if (tft) {
-        tft->waitDisplay();
-    }
-    
-    // Memory cleanup
-#ifdef ESP32
-    heap_caps_check_integrity_all(true);
-#endif
-    delay(10);
-    
-    // Switch to new screen
-    currentScreen = newScreen;
-    currentScreen->onEnter();
-    
-    // Force full redraw
-    if (tft) {
-        tft->fillScreen(0x0000);
-    }
-}
-
 // ========== Input Handling Methods ==========
 void CustomUIModule::checkKeypadInput() {
     if (!keypad) return;
@@ -489,87 +532,11 @@ void CustomUIModule::handleKeyPress(char key) {
     if (currentScreen->handleKeyPress(key)) {
         return; // Screen handled the key
     }
-
-    // Handle global navigation keys
-    switch (key) {
-        case '1': // Select/Details for MessageListScreen, Reply for MessageDetailsScreen, or Home for others
-            if (currentScreen == messageListScreen) {
-                // Navigate to message details if valid selection
-                if (messageListScreen->hasValidSelection()) {
-                    MessageInfo selectedMsg = messageListScreen->getSelectedMessage();
-                    messageDetailsScreen->setMessage(selectedMsg);
-                    switchToScreen(messageDetailsScreen);
-                    LOG_INFO("🔧 CUSTOM UI: Navigated to MessageDetailsScreen");
-                    return;
-                } else {
-                    LOG_INFO("🔧 CUSTOM UI: No valid message selected");
-                }
-            } else if (currentScreen == messageDetailsScreen) {
-                // Reply button - navigate to T9 input for reply
-                if (messageDetailsScreen->hasValidMessage()) {
-                    LOG_INFO("🔧 CUSTOM UI: Starting reply to message");
-                    
-                    // Clear any existing text in T9 input
-                    t9InputScreen->clearInput();
-                    
-                    // Navigate to T9 input screen
-                    switchToScreen(t9InputScreen);
-                    return;
-                } else {
-                    LOG_INFO("🔧 CUSTOM UI: No valid message to reply to");
-                }
-            }
-            // For all other screens, go to home
-            if (currentScreen != homeScreen) {
-                switchToScreen(homeScreen);
-            }
-            break;
-            
-        case '3': // Snake Game
-            if (currentScreen != snakeGameScreen) {
-                switchToScreen(snakeGameScreen);
-            }
-            break;
-
-        case '7': // Nodes
-            if (currentScreen != nodesListScreen) {
-                switchToScreen(nodesListScreen);
-            }
-            break;
-            
-        case 'D':
-        case 'd': // Message List
-            if (currentScreen != messageListScreen) {
-                switchToScreen(messageListScreen);
-            }
-            break;
-
-        case 'A':
-        case 'a': // Back/Prev/Home button
-            if (currentScreen == messageDetailsScreen) {
-                // Navigate back to message list screen
-                switchToScreen(messageListScreen);
-                LOG_INFO("🔧 CUSTOM UI: Navigated back to MessageListScreen");
-            } else if (currentScreen == t9InputScreen) {
-                // Navigate back to message details screen
-                switchToScreen(messageDetailsScreen);
-                LOG_INFO("🔧 CUSTOM UI: Navigated back to MessageDetailsScreen from T9 input");
-            } else if (currentScreen == messagesScreen) {
-                // If at end of buffer or no messages, go home
-                if (!messagesScreen->hasMessages() || messagesScreen->handleKeyPress(key) == false) {
-                    switchToScreen(homeScreen);
-                }
-            } else if (currentScreen == messageListScreen) {
-                // Back from message list goes to home
-                switchToScreen(homeScreen);
-            } else if (currentScreen != homeScreen) {
-                switchToScreen(homeScreen);
-            }
-            break;
-
-        default:
-            break;
-    }
+    
+    // Fallback: If screen didn't handle it, we rely on individual screens 
+    // to implement their own navigation logic now.
+    // If any global hotkeys are absolutely needed that apply to ALL screens
+    // and weren't handled, they could go here.
 }
 
 // ========== Display Power Management ==========
@@ -618,18 +585,17 @@ void CustomUIModule::wakeDisplay() {
     // Update activity time
     updateLastActivity();
     
+    //Not required as wake already handles drawing
     // Force complete screen refresh with proper state restoration
-    if (currentScreen) {
-        // Clear screen first
-        tft->fillScreen(0x0000);
+    // if (currentScreen) {
+    //     // Clear screen first
+    //     tft->fillScreen(0x0000);
         
-        // Re-enter screen to refresh data and reset state
-        currentScreen->onEnter();
         
-        // Force full redraw and render immediately
-        currentScreen->forceRedraw();
-        currentScreen->draw(*tft);
-    }
+    //     // Force full redraw and render immediately
+    //     currentScreen->forceFullRedraw();
+    //     currentScreen->draw(*tft);
+    // }
     
     LOG_INFO("🔧 CUSTOM UI: Display awakened, screen state restored and refreshed");
 }
@@ -676,71 +642,6 @@ int CustomUIModule::onDeepSleep(void *unused) {
     
     LOG_INFO("🔧 CUSTOM UI: Deep sleep cleanup completed");
     return 0; // Allow deep sleep to proceed
-}
-
-// ========== Message Sending ==========
-void CustomUIModule::sendReplyMessage(const String& messageText, uint32_t toNodeId, uint8_t channelIndex) {
-    LOG_INFO("🔧 CUSTOM UI: Sending reply message: '%s' to node %08X on channel %d", 
-             messageText.c_str(), toNodeId, channelIndex);
-    
-    if (messageText.length() == 0) {
-        LOG_INFO("🔧 CUSTOM UI: Cannot send empty message");
-        return;
-    }
-    
-    // Use LoRaHelper to send the message
-    bool success = LoRaHelper::sendMessage(messageText, toNodeId, channelIndex);
-    
-    if (success) {
-        LOG_INFO("🔧 CUSTOM UI: ✅ Message sent successfully");
-        
-        // Update activity time
-        updateLastActivity();
-    } else {
-        LOG_ERROR("🔧 CUSTOM UI: ❌ Failed to send message");
-    }
-}
-
-void CustomUIModule::onT9InputConfirm(const String& text) {
-    LOG_INFO("🔧 CUSTOM UI: T9 input confirmed with text: '%s'", text.c_str());
-    
-    // Get the current message from MessageDetailsScreen for reply context
-    if (messageDetailsScreen && messageDetailsScreen->hasValidMessage()) {
-        const MessageInfo& currentMsg = messageDetailsScreen->getCurrentMessage();
-        
-        LOG_INFO("🔧 CUSTOM UI: Sending reply to message from node %08X", currentMsg.senderNodeId);
-        
-        // Determine reply destination based on message type
-        uint32_t replyToNode;
-        uint8_t replyChannel;
-        
-        if (currentMsg.isDirectMessage) {
-            // Reply to direct message - send back to sender as DM
-            replyToNode = currentMsg.senderNodeId;
-            replyChannel = 0; // DMs use primary channel
-            LOG_INFO("🔧 CUSTOM UI: Replying to DM from %s", currentMsg.senderName);
-        } else {
-            // Reply to channel message - send to same channel
-            replyToNode = UINT32_MAX; // Broadcast to channel
-            replyChannel = currentMsg.channelIndex;
-            LOG_INFO("🔧 CUSTOM UI: Replying to channel message on channel %d", replyChannel);
-        }
-        
-        sendReplyMessage(text, replyToNode, replyChannel);
-        
-        // Navigate back to message list after sending
-        if (messageListScreen) {
-            switchToScreen(messageListScreen);
-            LOG_INFO("🔧 CUSTOM UI: Navigated back to MessageListScreen after reply");
-        }
-    } else {
-        LOG_ERROR("🔧 CUSTOM UI: No message context for reply");
-        
-        // Navigate back anyway
-        if (messageListScreen) {
-            switchToScreen(messageListScreen);
-        }
-    }
 }
 
 #endif

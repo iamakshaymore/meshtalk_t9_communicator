@@ -25,7 +25,7 @@ public:
     virtual ~BaseListScreen();
 
     // BaseScreen interface
-    virtual void onEnter() override;
+    virtual void onEnter(const NavigationContext& ctx) override;
     virtual void onExit() override;
     virtual void onDraw(lgfx::LGFX_Device& tft) override;
     virtual bool handleKeyPress(char key) override;
@@ -78,8 +78,8 @@ protected:
     int getContentWidth() const { return CONTENT_WIDTH; }
     
     // Force list area redraw
-    void invalidateList() { needsListRedraw = true; }
-    void invalidateSelection() { selectionChanged = true; }
+    void invalidateList() { needsListRedraw = true; forceRedraw(); }
+    void invalidateSelection() { selectionChanged = true; forceRedraw(); }
 
 private:
     /**

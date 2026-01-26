@@ -12,6 +12,7 @@
 #include <Arduino.h>
 #include <vector>
 #include <memory>
+#include "ScreenManager.h"
 
 // Forward declarations
 class InitBase;
@@ -19,11 +20,13 @@ class InitDisplay;
 class InitKeypad;
 class BaseScreen;
 class HomeScreen;
+class MainMenuScreen;
 class NodesListScreen;
 class MessageListScreen;
 class MessageDetailsScreen;
 class SnakeGameScreen;
 class T9InputScreen;
+class MessagesMenuScreen;
 
 #include "screens/MessagesScreen.h"
 /**
@@ -51,10 +54,25 @@ public:
     // Module interface
     virtual int32_t runOnce() override;
     virtual ProcessMessage handleReceived(const meshtastic_MeshPacket &mp) override;
+    virtual bool wantPacket(const meshtastic_MeshPacket *p) override;
     virtual bool wantUIFrame() override;
     
     // Initialization
     void initAll();
+
+    // Screen Management
+    ScreenManager* getScreenManager() { return &screenManager; }
+
+    // Accessors for Screens
+    HomeScreen* getHomeScreen() { return homeScreen; }
+    MainMenuScreen* getMenuScreen() { return menuScreen; }
+    NodesListScreen* getNodesListScreen() { return nodesListScreen; }
+    MessageListScreen* getMessageListScreen() { return messageListScreen; }
+    MessageDetailsScreen* getMessageDetailsScreen() { return messageDetailsScreen; }
+    MessagesScreen* getMessagesScreen() { return messagesScreen; }
+    MessagesMenuScreen* getMessagesMenuScreen() { return messagesMenuScreen; }
+    SnakeGameScreen* getSnakeGameScreen() { return snakeGameScreen; }
+    T9InputScreen* getT9InputScreen() { return t9InputScreen; }
 
 private:
     // Modular initializers
@@ -65,6 +83,9 @@ private:
     InitKeypad* keypadInit;
     
     bool allInitialized;
+
+    // Screen Manager
+    ScreenManager screenManager;
     
     // Display and input handling
     lgfx::LGFX_Device* tft;
@@ -73,10 +94,12 @@ private:
     // Screen management
     BaseScreen* currentScreen;
     HomeScreen* homeScreen;
+    MainMenuScreen* menuScreen;
     NodesListScreen* nodesListScreen;
     MessageListScreen* messageListScreen;
     MessageDetailsScreen* messageDetailsScreen;
     MessagesScreen* messagesScreen;
+    MessagesMenuScreen* messagesMenuScreen;
     SnakeGameScreen* snakeGameScreen;
     T9InputScreen* t9InputScreen;
     
@@ -110,18 +133,9 @@ private:
     CallbackObserver<CustomUIModule, void *> deepSleepObserver = 
         CallbackObserver<CustomUIModule, void *>(this, &CustomUIModule::onDeepSleep);
     
-    // Screen navigation
-    void switchToScreen(BaseScreen* newScreen);
-    
     // Input handling
     void checkKeypadInput();
     void handleKeyPress(char key);
-    
-    // Message sending
-    void sendReplyMessage(const String& messageText, uint32_t toNodeId, uint8_t channelIndex = 0);
-    
-    // T9 Input callback
-    void onT9InputConfirm(const String& text);
 };
 
 // Global setup function

@@ -22,7 +22,7 @@ public:
     virtual ~T9InputScreen();
 
     // BaseScreen interface
-    virtual void onEnter() override;
+    virtual void onEnter(const NavigationContext& ctx) override;
     virtual void onExit() override;
     virtual void onDraw(lgfx::LGFX_Device& tft) override;
     virtual bool handleKeyPress(char key) override;

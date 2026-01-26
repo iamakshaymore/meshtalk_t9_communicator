@@ -4,6 +4,15 @@
 #include <Arduino.h>
 #include <vector>
 
+// Navigation context structure
+struct NavigationContext {
+    bool isBack;        // TRUE if returning to this screen (back navigation)
+    void* resultData;   // Optional data passed from previous screen
+
+    NavigationContext(bool back = false, void* data = nullptr) 
+        : isBack(back), resultData(data) {}
+};
+
 // Navigation hint structure
 struct NavHint {
     char key;          // Key to press (e.g., '1', '2', '3')
@@ -33,8 +42,8 @@ public:
     virtual ~BaseScreen();
     
     // Screen lifecycle
-    virtual void onEnter() = 0;     // Called when screen becomes active
-    virtual void onExit() = 0;      // Called when leaving screen
+    virtual void onEnter(const NavigationContext& ctx = NavigationContext()) { (void)ctx; } // Default implementation
+    virtual void onExit() {}      // Default empty implementation
     virtual void onDraw(lgfx::LGFX_Device& tft) = 0;  // Draw content area only
     
     // Input handling
@@ -42,8 +51,14 @@ public:
     
     // Screen management
     void draw(lgfx::LGFX_Device& tft);  // Draw complete screen (header + content + footer)
-    void forceRedraw() { needsRedraw = true; headerNeedsUpdate = true; }
-    virtual bool needsUpdate() const { return needsRedraw || headerNeedsUpdate; }
+    
+    // Force just the content (onDraw) to run
+    void forceRedraw() { contentNeedsRedraw = true; }
+    
+    // Force a full screen wipe and redraw
+    void forceFullRedraw() { needsFullRedraw = true; headerNeedsUpdate = true; footerNeedsUpdate = true; contentNeedsRedraw = true; }
+    
+    virtual bool needsUpdate() const { return needsFullRedraw || headerNeedsUpdate || footerNeedsUpdate || contentNeedsRedraw; }
     
     // Navigation
     void setNavigationHints(const std::vector<NavHint>& hints);
@@ -61,8 +76,10 @@ public:
 
 protected:
     String name;
-    bool needsRedraw;
+    bool needsFullRedraw;
     bool headerNeedsUpdate;
+    bool footerNeedsUpdate;
+    bool contentNeedsRedraw;
     std::vector<NavHint> navHints;
     
     // Layout helpers for derived classes

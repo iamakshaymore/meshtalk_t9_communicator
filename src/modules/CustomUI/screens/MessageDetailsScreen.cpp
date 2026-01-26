@@ -1,5 +1,8 @@
 #include "MessageDetailsScreen.h"
 #include "BaseScreen.h"
+#include "T9InputScreen.h"
+#include "modules/CustomUI/CustomUIModule.h"
+#include "utils/LoRaHelper.h"
 #include "configuration.h"
 
 // Logging macro
@@ -18,11 +21,18 @@ MessageDetailsScreen::~MessageDetailsScreen() {
     clearContent();
 }
 
-void MessageDetailsScreen::onEnter() {
-    LOG_INFO("📱 MessageDetailsScreen: Entering screen");
+void MessageDetailsScreen::onEnter(const NavigationContext& ctx) {
+    LOG_INFO("📱 MessageDetailsScreen: Entering screen (isBack=%d)", ctx.isBack);
     
-    // Reset scroll position
-    scrollOffset = 0;
+    // Only reset scroll if fresh entry
+    if (!ctx.isBack) {
+        scrollOffset = 0;
+    }
+    
+    // If returning, we need to re-wrap text (it was cleared in onExit to save RAM)
+    if (ctx.isBack && hasValidMessage()) {
+        wrapTextToLines();
+    }
     
     // Mark everything for redraw
     contentDirty = true;
@@ -30,7 +40,6 @@ void MessageDetailsScreen::onEnter() {
     footerDirty = true;
     
     updateNavigationHints();
-    forceRedraw();
 }
 
 void MessageDetailsScreen::onExit() {
@@ -42,7 +51,7 @@ void MessageDetailsScreen::onExit() {
     std::vector<String>().swap(textLines);
     
     // Reset state
-    scrollOffset = 0;
+    // scrollOffset = 0; // Preserved for back navigation
     totalLines = 0;
     contentDirty = true;
     headerDirty = true;
@@ -63,8 +72,8 @@ void MessageDetailsScreen::onDraw(lgfx::LGFX_Device& tft) {
         return;
     }
 
-    // Always redraw sender section to prevent disappearing
-    if (headerDirty || contentDirty) {
+    // Only redraw sender if explicitly marked (e.g. new message)
+    if (headerDirty) {
         drawSenderSection(tft);
         headerDirty = false;
     }
@@ -75,7 +84,7 @@ void MessageDetailsScreen::onDraw(lgfx::LGFX_Device& tft) {
         contentDirty = false;
     }
 
-    // Redraw footer when needed
+    // Redraw footer (timestamp and page info) when needed
     if (footerDirty) {
         drawTimestampSection(tft);
         footerDirty = false;
@@ -89,12 +98,38 @@ bool MessageDetailsScreen::handleKeyPress(char key) {
 
     switch (key) {
         case 'A':
-            // Back button - always goes back to MessageListScreen
-            return false; // Let UI module handle screen switch
+            // Back button
+            if (customUIModule) {
+                 customUIModule->getScreenManager()->navigateBack();
+            }
+            return true;
             
         case '1':
-            // Reply button - let UI module handle navigation to T9 input
-            return false; // Let UI module handle screen switch
+            // Reply button
+            if (customUIModule && !currentMessage.isOutgoing) {
+                T9InputScreen* t9 = customUIModule->getT9InputScreen();
+                if (t9) {
+                    customUIModule->getScreenManager()->navigateToT9(t9, [this](const String& text) {
+                        // Determine reply destination (DM vs Channel)
+                        uint32_t dest = currentMessage.isDirectMessage ? currentMessage.senderNodeId : UINT32_MAX;
+                        uint8_t ch = currentMessage.isDirectMessage ? 0 : currentMessage.channelIndex;
+
+                        // Send message using LoRaHelper
+                        uint32_t packetId = LoRaHelper::sendMessage(text, dest, ch);
+                        if (packetId != 0) {
+                             LOG_INFO("Message sent with Packet ID: %d", packetId);
+                             // Future: Register this ID to listen for ACK
+                        }
+
+                        // Show popup confirmation
+                        if (customUIModule) {
+                            customUIModule->getScreenManager()->showPopup("Message Sent!", 1000);
+                            customUIModule->getScreenManager()->navigateBack();
+                        }
+                    });
+                }
+            }
+            return true;
             
         case '2':
             // Scroll up (up arrow)
@@ -154,57 +189,57 @@ void MessageDetailsScreen::wrapTextToLines() {
     }
 
     // Use pixel-based wrapping for accurate text fitting
-    String messageText(currentMessage.text);
+    String fullText = String(currentMessage.text);
     const int TEXT_MARGIN = 10;              // Left margin
     const int SCROLLBAR_WIDTH = 20;          // Reserve space for scrollbar
     const int AVAILABLE_WIDTH = getContentWidth() - TEXT_MARGIN - SCROLLBAR_WIDTH; // 290px effective width
     const int CHAR_WIDTH = 12;               // Approximate width per character at size 2 font
     const int CHARS_PER_LINE = AVAILABLE_WIDTH / CHAR_WIDTH; // ~24 chars for safe wrapping
     
-    if (messageText.length() <= CHARS_PER_LINE) {
-        textLines.push_back(messageText);
-    } else {
-        int start = 0;
-        int length = messageText.length();
+    // Split by newlines first
+    int start = 0;
+    while (start < fullText.length()) {
+        int newlinePos = fullText.indexOf('\n', start);
+        if (newlinePos == -1) newlinePos = fullText.length();
+
+        // Extract paragraph and remove carriage returns
+        String paragraph = fullText.substring(start, newlinePos);
+        paragraph.replace("\r", "");
         
-        while (start < length) {
-            // Skip leading spaces
-            while (start < length && messageText.charAt(start) == ' ') {
-                start++;
-            }
-            
-            if (start >= length) break;
-            
-            int end = start + CHARS_PER_LINE;
-            
-            if (end >= length) {
-                // Last line - take remaining text
-                String lastLine = messageText.substring(start);
-                if (lastLine.length() > 0) {
-                    textLines.push_back(lastLine);
+        // Wrap this paragraph
+        if (paragraph.length() == 0) {
+             // textLines.push_back(""); // Optional: Add blank line for explicit double-newline
+             // For now, let's treat double newline as a single break unless it's significant
+             textLines.push_back(" "); // Push a space so it takes up a line
+             // Actually, if it's empty, it's an empty line.
+        } else {
+            int pStart = 0; 
+            while (pStart < paragraph.length()) {
+                // If remaining fits, push it
+                if (paragraph.length() - pStart <= CHARS_PER_LINE) {
+                     textLines.push_back(paragraph.substring(pStart));
+                     break;
                 }
-                break;
-            }
-            
-            // Find last space within limit for word boundary
-            int lastSpace = -1;
-            for (int i = std::min(end, length - 1); i >= start; i--) {
-                if (messageText.charAt(i) == ' ') {
-                    lastSpace = i;
-                    break;
+                
+                int len = CHARS_PER_LINE;
+                int splitIdx = pStart + len;
+                
+                // Backtrack for space to avoiding splitting words
+                int spaceIdx = paragraph.lastIndexOf(' ', splitIdx);
+                
+                if (spaceIdx > pStart && spaceIdx > (splitIdx - (CHARS_PER_LINE/2))) {
+                    // Good break point found
+                    textLines.push_back(paragraph.substring(pStart, spaceIdx));
+                    pStart = spaceIdx + 1; // Skip the space
+                } else {
+                    // No good space, hard break
+                    textLines.push_back(paragraph.substring(pStart, splitIdx));
+                    pStart = splitIdx;
                 }
-            }
-            
-            if (lastSpace > start && (lastSpace - start) >= (CHARS_PER_LINE / 2)) {
-                // Good break point found - use it
-                textLines.push_back(messageText.substring(start, lastSpace));
-                start = lastSpace + 1;
-            } else {
-                // No good space or space too close to start - break at character limit
-                textLines.push_back(messageText.substring(start, end));
-                start = end;
             }
         }
+        
+        start = newlinePos + 1;
     }
     
     totalLines = textLines.size();
@@ -213,7 +248,8 @@ void MessageDetailsScreen::wrapTextToLines() {
 }
 
 void MessageDetailsScreen::calculateVisibleLines() {
-    maxVisibleLines = 5; // Fixed 5 lines per page for page-based scrolling
+    // Dynamic calculation based on available height
+    maxVisibleLines = TEXT_AREA_HEIGHT / LINE_HEIGHT;
     LOG_INFO("📱 MessageDetailsScreen: Max visible lines per page: %d", maxVisibleLines);
 }
 
@@ -228,7 +264,7 @@ void MessageDetailsScreen::drawSenderSection(lgfx::LGFX_Device& tft) {
     tft.setTextColor(COLOR_GREEN, COLOR_BLACK);
     tft.setTextSize(2);
     tft.setCursor(10, senderY + 5);
-    tft.print("From: ");
+    currentMessage.isOutgoing ? tft.print("To: ") : tft.print("From: ");
     tft.print(currentMessage.senderName);
     tft.setTextSize(1);
     
@@ -293,7 +329,9 @@ void MessageDetailsScreen::drawTimestampSection(lgfx::LGFX_Device& tft) {
     unsigned int m = (t / 60) % 60;
     unsigned int s = t % 60;
     char timebuf[32];
-    snprintf(timebuf, sizeof(timebuf), "Received: %02u:%02u:%02u", h, m, s);
+    currentMessage.isOutgoing ? 
+    snprintf(timebuf, sizeof(timebuf), "Sent: %02u:%02u:%02u", h, m, s) 
+    : snprintf(timebuf, sizeof(timebuf), "Received: %02u:%02u:%02u", h, m, s);
     
     tft.setTextColor(COLOR_YELLOW, COLOR_BLACK);
     tft.setTextSize(1);
@@ -315,9 +353,9 @@ void MessageDetailsScreen::drawTimestampSection(lgfx::LGFX_Device& tft) {
 void MessageDetailsScreen::scrollUp() {
     if (scrollOffset > 0) {
         scrollOffset--; // Move to previous page
-        contentDirty = true;
-        footerDirty = true;
-        headerDirty = true;
+        contentDirty = true; // Content changes
+        footerDirty = true;  // Page number changes
+        // Header (Sender) does not change
         updateNavigationHints();
         forceRedraw();
         LOG_INFO("📱 MessageDetailsScreen: Scrolled to page %d", scrollOffset + 1);
@@ -328,9 +366,9 @@ void MessageDetailsScreen::scrollDown() {
     int totalPages = (totalLines + maxVisibleLines - 1) / maxVisibleLines;
     if (scrollOffset < totalPages - 1) {
         scrollOffset++; // Move to next page
-        contentDirty = true;
-        footerDirty = true;
-        headerDirty = true;
+        contentDirty = true; // Content changes
+        footerDirty = true;  // Page number changes
+        // Header (Sender) does not change
         updateNavigationHints();
         forceRedraw();
         LOG_INFO("📱 MessageDetailsScreen: Scrolled to page %d", scrollOffset + 1);
@@ -338,11 +376,11 @@ void MessageDetailsScreen::scrollDown() {
 }
 
 void MessageDetailsScreen::updateNavigationHints() {
-    navHints.clear();
+    std::vector<NavHint> newHints;
     
     // Show reply button if message is valid
-    if (hasValidMessage()) {
-        navHints.push_back(NavHint('1', "Reply"));
+    if (hasValidMessage() && !currentMessage.isOutgoing) {
+        newHints.push_back(NavHint('1', "Reply"));
     }
     
     // Show page navigation hints only if message has multiple pages
@@ -350,15 +388,34 @@ void MessageDetailsScreen::updateNavigationHints() {
         int totalPages = (totalLines + maxVisibleLines - 1) / maxVisibleLines;
         
         if (scrollOffset > 0) {
-            navHints.push_back(NavHint('2', "PgUp"));
+            newHints.push_back(NavHint('2', "PgUp"));
         }
         if (scrollOffset < totalPages - 1) {
-            navHints.push_back(NavHint('8', "PgDn"));
+            newHints.push_back(NavHint('8', "PgDn"));
         }
     }
 
     // Always show back button
-    navHints.push_back(NavHint('A', "Back"));
+    newHints.push_back(NavHint('A', "Back"));
+    
+    // Check if hints actually changed to avoid unnecessary redraws
+    bool changed = false;
+    if (navHints.size() != newHints.size()) {
+        changed = true;
+    } else {
+        for (size_t i = 0; i < navHints.size(); i++) {
+            if (navHints[i].key != newHints[i].key || !navHints[i].label.equals(newHints[i].label)) {
+                changed = true;
+                break;
+            }
+        }
+    }
+    
+    // Only update if changed
+    if (changed) {
+        setNavigationHints(newHints);
+        LOG_INFO("📱 MessageDetailsScreen: Updated navigation hints");
+    }
 }
 
 void MessageDetailsScreen::clearContent() {

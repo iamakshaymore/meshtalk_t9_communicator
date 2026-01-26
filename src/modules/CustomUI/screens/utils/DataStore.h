@@ -28,6 +28,7 @@ public:
     
     // Message storage operations
     void addMessage(const MessageInfo& message);
+    void ackReceived(uint32_t messageId);
     std::vector<MessageInfo> getRecentMessages(int maxMessages = 10) const;
     
     // Utility methods
@@ -37,6 +38,9 @@ public:
     
     // Get latest message
     MessageInfo getLatestMessage() const;
+    
+    // Get list of channel indexes containing messages
+    std::vector<uint8_t> getActiveChannelIndexes() const;
 
 private:
     // Private constructor for singleton
@@ -48,7 +52,11 @@ private:
     DataStore& operator=(const DataStore&) = delete;
     
     // Message storage
-    static const size_t MAX_MESSAGES = 50; // Maximum messages to store
+#if defined(VARIANT_heltec_v3_custom)
+    static const size_t MAX_MESSAGES = 50; // Reduced for V3 (SRAM limit)
+#else
+    static const size_t MAX_MESSAGES = 100; // Maximum messages to store
+#endif
     std::vector<MessageInfo> messages;
     mutable bool needsSort; // Flag to indicate if messages need sorting
     

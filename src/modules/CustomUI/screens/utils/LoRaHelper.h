@@ -34,17 +34,33 @@ struct MessageInfo {
     uint32_t timestamp;         // Message timestamp
     uint32_t senderNodeId;      // Sender node ID
     uint32_t toNodeId;          // Destination node ID (for DM detection)
+    uint32_t messageId;         // Packet ID / Message ID
     uint8_t channelIndex;       // Channel index for channel messages
     char channelName[16];       // Channel name or identifier
     bool isOutgoing;            // True if sent by us
     bool isDirectMessage;       // True if this is a direct message
+    bool ackReceived;           // True if ACK received for this message
     bool isValid;               // True if message data is valid
     
-    MessageInfo() : timestamp(0), senderNodeId(0), toNodeId(0), channelIndex(0),
-                    isOutgoing(false), isDirectMessage(false), isValid(false) {
+    MessageInfo() : timestamp(0), senderNodeId(0), toNodeId(0), messageId(0), channelIndex(0),
+                    isOutgoing(false), isDirectMessage(false), ackReceived(false), isValid(false) {
         text[0] = '\0';
         senderName[0] = '\0';
         channelName[0] = '\0';
+    }
+};
+
+/**
+ * Information about a channel for display purposes
+ */
+struct ChannelHelperInfo {
+    uint8_t index;              // Channel index
+    char name[16];              // Channel name
+    bool isPrimary;             // Is this the primary channel
+    bool isSecondary;           // Is this a secondary channel
+    
+    ChannelHelperInfo() : index(0), isPrimary(false), isSecondary(false) {
+        name[0] = '\0';
     }
 };
 
@@ -91,6 +107,12 @@ public:
      * @return true if LoRa is active
      */
     static bool isLoRaOnline();
+
+    /**
+     * Get list of configured channels with names and types
+     * @return vector of ChannelHelperInfo
+     */
+    static std::vector<ChannelHelperInfo> getChannelList();
 
     /**
      * Get list of mesh nodes with their information
@@ -147,9 +169,9 @@ public:
      * @param messageText Text to send
      * @param toNodeId Destination node ID (UINT32_MAX for broadcast)
      * @param channelIndex Channel to send on (0 = primary)
-     * @return true if message was sent successfully, false otherwise
+     * @return Packet ID if message was sent successfully, 0 otherwise
      */
-    static bool sendMessage(const String& messageText, uint32_t toNodeId = UINT32_MAX, uint8_t channelIndex = 0);
+    static uint32_t sendMessage(const String& messageText, uint32_t toNodeId = UINT32_MAX, uint8_t channelIndex = 0);
 
 private:
     static String lastLongName;
