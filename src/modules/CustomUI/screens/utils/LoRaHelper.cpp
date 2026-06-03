@@ -98,7 +98,7 @@ std::vector<NodeInfo> LoRaHelper::getNodesList(int maxNodes, bool includeOffline
     
     for (size_t i = 0; i < totalNodes && nodes.size() < maxNodes; i++) {
         auto meshNode = nodeDB->getMeshNodeByIndex(i);
-        if (!meshNode || !meshNode->has_user) {
+        if (!meshNode || !nodeInfoLiteHasUser(meshNode)) {
             continue; // Skip nodes without user info
         }
         
@@ -117,18 +117,18 @@ std::vector<NodeInfo> LoRaHelper::getNodesList(int maxNodes, bool includeOffline
         nodeInfo.nodeNum = meshNode->num;
         
         // Copy strings to fixed char arrays (no dynamic allocation)
-        strncpy(nodeInfo.longName, meshNode->user.long_name, sizeof(nodeInfo.longName) - 1);
+        strncpy(nodeInfo.longName, meshNode->long_name, sizeof(nodeInfo.longName) - 1);
         nodeInfo.longName[sizeof(nodeInfo.longName) - 1] = '\0';
         
-        strncpy(nodeInfo.shortName, meshNode->user.short_name, sizeof(nodeInfo.shortName) - 1);
+        strncpy(nodeInfo.shortName, meshNode->short_name, sizeof(nodeInfo.shortName) - 1);
         nodeInfo.shortName[sizeof(nodeInfo.shortName) - 1] = '\0';
         
         nodeInfo.lastHeard = meshNode->last_heard;
         nodeInfo.snr = meshNode->snr;
         nodeInfo.signalBars = snrToSignalBars(meshNode->snr);
         nodeInfo.isOnline = online;
-        nodeInfo.isFavorite = meshNode->is_favorite;
-        nodeInfo.viaInternet = meshNode->via_mqtt;
+        nodeInfo.isFavorite = nodeInfoLiteIsFavorite(meshNode);
+        nodeInfo.viaInternet = nodeInfoLiteViaMqtt(meshNode);
         nodeInfo.hopsAway = meshNode->has_hops_away ? meshNode->hops_away : 0;
         
         // Use node number as fallback if no long name
@@ -258,12 +258,12 @@ String LoRaHelper::formatSenderName(uint32_t nodeId, bool isOutgoing) {
     // Look up node in NodeDB
     if (nodeDB) {
         const auto* node = nodeDB->getMeshNode(nodeId);
-        if (node && node->has_user) {
+        if (node && nodeInfoLiteHasUser(node)) {
             // Try long name first, fallback to short name
-            if (strlen(node->user.long_name) > 0) {
-                return String(node->user.long_name);
-            } else if (strlen(node->user.short_name) > 0) {
-                return String(node->user.short_name);
+            if (strlen(node->long_name) > 0) {
+                return String(node->long_name);
+            } else if (strlen(node->short_name) > 0) {
+                return String(node->short_name);
             }
         }
     }
@@ -357,10 +357,10 @@ uint32_t LoRaHelper::sendMessage(const String& messageText, uint32_t toNodeId, u
     
     if (isDirectMsg && nodeDB) {
          const auto* node = nodeDB->getMeshNode(toNodeId);
-         if (node && node->has_user && strlen(node->user.long_name) > 0) {
-             strncpy(sentMsg.senderName, node->user.long_name, sizeof(sentMsg.senderName) - 1);
-         } else if (node && node->has_user && strlen(node->user.short_name) > 0) {
-              strncpy(sentMsg.senderName, node->user.short_name, sizeof(sentMsg.senderName) - 1);
+         if (node && nodeInfoLiteHasUser(node) && strlen(node->long_name) > 0) {
+             strncpy(sentMsg.senderName, node->long_name, sizeof(sentMsg.senderName) - 1);
+         } else if (node && nodeInfoLiteHasUser(node) && strlen(node->short_name) > 0) {
+              strncpy(sentMsg.senderName, node->short_name, sizeof(sentMsg.senderName) - 1);
          } else {
               // Fallback to hex ID of recipient
               snprintf(sentMsg.senderName, sizeof(sentMsg.senderName), "!%08X", toNodeId);

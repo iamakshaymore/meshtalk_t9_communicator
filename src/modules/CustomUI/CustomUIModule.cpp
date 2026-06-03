@@ -396,7 +396,7 @@ ProcessMessage CustomUIModule::handleReceived(const meshtastic_MeshPacket &mp) {
         // Extract text from payload (payload.bytes is not null-terminated)
         const meshtastic_Data_payload_t &payload = mp.decoded.payload;
         String text;
-        if (payload.size > 0 && payload.bytes != nullptr) {
+        if (payload.size > 0) {
             text = String(reinterpret_cast<const char *>(payload.bytes), payload.size);
         }
         
@@ -404,8 +404,8 @@ ProcessMessage CustomUIModule::handleReceived(const meshtastic_MeshPacket &mp) {
         String sender;
         if (nodeDB) {
             meshtastic_NodeInfoLite *info = nodeDB->getMeshNode(mp.from);
-            if (info && info->user.long_name[0] != '\0') {
-                sender = String(info->user.long_name);
+            if (info && info->long_name[0] != '\0') {
+                sender = String(info->long_name);
             } else {
                 char senderBuf[12];
                 snprintf(senderBuf, sizeof(senderBuf), "%08X", mp.from);
