@@ -117,6 +117,8 @@
 #define HW_VENDOR meshtastic_HardwareModel_PRIVATE_HW
 #elif defined(HELTEC_T114)
 #define HW_VENDOR meshtastic_HardwareModel_HELTEC_MESH_NODE_T114
+#elif defined(HELTEC_MESH_NODE_T1)
+#define HW_VENDOR meshtastic_HardwareModel_HELTEC_MESH_NODE_T1
 #elif defined(MESHLINK)
 #define HW_VENDOR meshtastic_HardwareModel_MESHLINK
 #elif defined(SEEED_XIAO_NRF52840_KIT)
@@ -157,8 +159,8 @@
 
 #endif
 
-#ifdef PIN_LED1
-#define LED_PIN PIN_LED1 // LED1 on nrf52840-DK
+#if defined(PIN_LED1) && !defined(LED_POWER)
+#define LED_POWER PIN_LED1 // LED1 on nrf52840-DK
 #endif
 
 #ifdef PIN_BUTTON1

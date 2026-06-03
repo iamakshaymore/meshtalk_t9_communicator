@@ -53,6 +53,13 @@ void InkHUD::InkHUD::addApplet(const char *name, Applet *a, bool defaultActive, 
     windowManager->addApplet(name, a, defaultActive, defaultAutoshow, onTile);
 }
 
+void InkHUD::InkHUD::notifyApplyingChanges()
+{
+    if (events) {
+        events->applyingChanges();
+    }
+}
+
 // Start InkHUD!
 // Call this only after you have configured InkHUD
 void InkHUD::InkHUD::begin()
@@ -64,6 +71,24 @@ void InkHUD::InkHUD::begin()
     events->begin();
     renderer->begin();
     // LogoApplet shows boot screen here
+}
+
+void InkHUD::InkHUD::setTouchEnabledProvider(TouchEnabledProvider provider)
+{
+    touchEnabledProvider = provider;
+}
+
+bool InkHUD::InkHUD::hasTouchEnabledProvider() const
+{
+    return touchEnabledProvider != nullptr;
+}
+
+bool InkHUD::InkHUD::isTouchEnabled() const
+{
+    if (!touchEnabledProvider)
+        return true;
+
+    return touchEnabledProvider();
 }
 
 // Call this when your user button gets a short press
@@ -168,6 +193,111 @@ void InkHUD::InkHUD::navRight()
     }
 }
 
+// Call this when touch input needs joystick-like up navigation independent of joystick-enabled mode
+void InkHUD::InkHUD::touchNavUp()
+{
+    switch ((persistence->settings.rotation + persistence->settings.joystick.alignment) % 4) {
+    case 1: // 90 deg
+        events->onTouchNavLeft();
+        break;
+    case 2: // 180 deg
+        events->onTouchNavDown();
+        break;
+    case 3: // 270 deg
+        events->onTouchNavRight();
+        break;
+    default: // 0 deg
+        events->onTouchNavUp();
+        break;
+    }
+}
+
+// Call this when touch input needs joystick-like down navigation independent of joystick-enabled mode
+void InkHUD::InkHUD::touchNavDown()
+{
+    switch ((persistence->settings.rotation + persistence->settings.joystick.alignment) % 4) {
+    case 1: // 90 deg
+        events->onTouchNavRight();
+        break;
+    case 2: // 180 deg
+        events->onTouchNavUp();
+        break;
+    case 3: // 270 deg
+        events->onTouchNavLeft();
+        break;
+    default: // 0 deg
+        events->onTouchNavDown();
+        break;
+    }
+}
+
+// Call this when touch input needs joystick-like left navigation independent of joystick-enabled mode
+void InkHUD::InkHUD::touchNavLeft()
+{
+    switch ((persistence->settings.rotation + persistence->settings.joystick.alignment) % 4) {
+    case 1: // 90 deg
+        events->onTouchNavDown();
+        break;
+    case 2: // 180 deg
+        events->onTouchNavRight();
+        break;
+    case 3: // 270 deg
+        events->onTouchNavUp();
+        break;
+    default: // 0 deg
+        events->onTouchNavLeft();
+        break;
+    }
+}
+
+// Call this when touch input needs joystick-like right navigation independent of joystick-enabled mode
+void InkHUD::InkHUD::touchNavRight()
+{
+    switch ((persistence->settings.rotation + persistence->settings.joystick.alignment) % 4) {
+    case 1: // 90 deg
+        events->onTouchNavUp();
+        break;
+    case 2: // 180 deg
+        events->onTouchNavLeft();
+        break;
+    case 3: // 270 deg
+        events->onTouchNavDown();
+        break;
+    default: // 0 deg
+        events->onTouchNavRight();
+        break;
+    }
+}
+
+void InkHUD::InkHUD::touchTap(uint16_t x, uint16_t y)
+{
+    events->onTouchTap(x, y, false);
+}
+
+void InkHUD::InkHUD::touchLongPress(uint16_t x, uint16_t y)
+{
+    events->onTouchTap(x, y, true);
+}
+
+// Call this for keyboard input
+// The Keyboard Applet also calls this
+void InkHUD::InkHUD::freeText(char c)
+{
+    events->onFreeText(c);
+}
+
+// Call this to complete a freetext input
+void InkHUD::InkHUD::freeTextDone()
+{
+    events->onFreeTextDone();
+}
+
+// Call this to cancel a freetext input
+void InkHUD::InkHUD::freeTextCancel()
+{
+    events->onFreeTextCancel();
+}
+
 // Cycle the next user applet to the foreground
 // Only activated applets are cycled
 // If user has a multi-applet layout, the applets will cycle on the "focused tile"
@@ -184,6 +314,12 @@ void InkHUD::InkHUD::prevApplet()
     windowManager->prevApplet();
 }
 
+// Returns the currently active applet
+InkHUD::Applet *InkHUD::InkHUD::getActiveApplet()
+{
+    return windowManager->getActiveApplet();
+}
+
 // Show the menu (on the the focused tile)
 // The applet previously displayed there will be restored once the menu closes
 void InkHUD::InkHUD::openMenu()
@@ -191,10 +327,28 @@ void InkHUD::InkHUD::openMenu()
     windowManager->openMenu();
 }
 
+// Show touch-friendly app switcher (on the focused tile)
+void InkHUD::InkHUD::openAppSwitcher()
+{
+    windowManager->openAppSwitcher();
+}
+
 // Bring AlignStick applet to the foreground
 void InkHUD::InkHUD::openAlignStick()
 {
     windowManager->openAlignStick();
+}
+
+// Open the on-screen keyboard
+void InkHUD::InkHUD::openKeyboard()
+{
+    windowManager->openKeyboard();
+}
+
+// Close the on-screen keyboard
+void InkHUD::InkHUD::closeKeyboard()
+{
+    windowManager->closeKeyboard();
 }
 
 // In layouts where multiple applets are shown at once, change which tile is focused
@@ -209,6 +363,16 @@ void InkHUD::InkHUD::nextTile()
 void InkHUD::InkHUD::prevTile()
 {
     windowManager->prevTile();
+}
+
+bool InkHUD::InkHUD::showApplet(uint8_t appletIndex)
+{
+    return windowManager->showApplet(appletIndex);
+}
+
+bool InkHUD::InkHUD::selectTileAt(uint16_t x, uint16_t y)
+{
+    return windowManager->selectTileAt(x, y);
 }
 
 // Rotate the display image by 90 degrees
@@ -245,10 +409,11 @@ void InkHUD::InkHUD::requestUpdate()
 // Ignores all diplomacy:
 //  - the display *will* update
 //  - the specified update type *will* be used
+// If the all parameter is true, the whole screen buffer is cleared and re-rendered
 // If the async parameter is false, code flow is blocked while the update takes place
-void InkHUD::InkHUD::forceUpdate(EInk::UpdateTypes type, bool async)
+void InkHUD::InkHUD::forceUpdate(EInk::UpdateTypes type, bool all, bool async)
 {
-    renderer->forceUpdate(type, async);
+    renderer->forceUpdate(type, all, async);
 }
 
 // Wait for any in-progress display update to complete before continuing
