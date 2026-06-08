@@ -1038,7 +1038,7 @@
 			)
 			(justify right)
 		)
-		(uuid "44f679ad-4b69-4b85-b7c7-1aa27210dff8")
+		(uuid "44f679ad-4b69-4b85-b7c7-1aa27210dff9")
 	)
 	(hierarchical_label "SPI_CLK"
 		(shape input)
@@ -1049,7 +1049,7 @@
 			)
 			(justify right)
 		)
-		(uuid "44f679ad-4b69-4b85-b7c7-1aa27210dff8")
+		(uuid "44f679ad-4b69-4b85-b7c7-1aa27210dffa")
 	)
 	(hierarchical_label "TFT_DC"
 		(shape input)
@@ -1060,7 +1060,7 @@
 			)
 			(justify right)
 		)
-		(uuid "44f679ad-4b69-4b85-b7c7-1aa27210dff8")
+		(uuid "44f679ad-4b69-4b85-b7c7-1aa27210dffb")
 	)
 	(hierarchical_label "DISPLAY_CS"
 		(shape input)
@@ -1071,7 +1071,7 @@
 			)
 			(justify right)
 		)
-		(uuid "44f679ad-4b69-4b85-b7c7-1aa27210dff8")
+		(uuid "44f679ad-4b69-4b85-b7c7-1aa27210dffc")
 	)
 	(hierarchical_label "TFT_BL"
 		(shape input)
@@ -1082,7 +1082,7 @@
 			)
 			(justify right)
 		)
-		(uuid "44f679ad-4b69-4b85-b7c7-1aa27210dff8")
+		(uuid "44f679ad-4b69-4b85-b7c7-1aa27210dffd")
 	)
 	(hierarchical_label "KB_R2"
 		(shape input)
