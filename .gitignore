@@ -66,3 +66,6 @@ userPrefs.jsonc.mcp-session-bak
 # compiled .proto outputs are ephemeral build artifacts.
 build/fixtures/
 bin/_generated/
+
+# PCB design tool backup folders
+**/Untitled-backups/

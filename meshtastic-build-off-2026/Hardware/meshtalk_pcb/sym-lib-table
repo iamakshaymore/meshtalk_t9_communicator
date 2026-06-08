@@ -1,0 +1,4 @@
+(sym_lib_table
+  (version 7)
+  (lib (name "ProLib_pcs_2024-10-14")(type "KiCad")(uri "${KICAD9_SYMBOL_DIR}/wio sx1262.kicad_sym")(options "")(descr ""))
+)
