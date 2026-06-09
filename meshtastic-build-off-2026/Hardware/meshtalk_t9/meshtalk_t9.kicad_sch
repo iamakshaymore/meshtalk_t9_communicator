@@ -127,6 +127,26 @@
 	)
 	(wire
 		(pts
+			(xy 39.37 121.92) (xy 115.57 121.92)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "3fc8914f-0ba6-4548-8b0c-44f70f35ba6b")
+	)
+	(wire
+		(pts
+			(xy 44.45 71.12) (xy 44.45 118.11)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "414c9536-b0c0-4d5b-a01f-f7f67d2e228a")
+	)
+	(wire
+		(pts
 			(xy 50.8 71.12) (xy 50.8 78.74)
 		)
 		(stroke
@@ -174,6 +194,16 @@
 			(type default)
 		)
 		(uuid "5828b1d9-bb6a-487e-9fe9-be6765b5a7e3")
+	)
+	(wire
+		(pts
+			(xy 39.37 71.12) (xy 39.37 121.92)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "592bb571-cfc2-408e-923d-2e2baa257fd7")
 	)
 	(wire
 		(pts
@@ -464,6 +494,16 @@
 			(type default)
 		)
 		(uuid "cf9c72ab-1b3f-4a98-9e79-3de93a786ac6")
+	)
+	(wire
+		(pts
+			(xy 44.45 118.11) (xy 115.57 118.11)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "d2e4ff75-a53d-46c5-8818-7fbb6ade6967")
 	)
 	(wire
 		(pts
@@ -913,6 +953,26 @@
 				(justify left)
 			)
 		)
+		(pin "BATTERY_PIN" input
+			(at 115.57 121.92 180)
+			(uuid "c97bc1ee-7c54-4a53-8ad5-ce84adfb58e0")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "ADC_CTRL" input
+			(at 115.57 118.11 180)
+			(uuid "9814466b-efc3-4478-bb04-a98274d2379b")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
 		(instances
 			(project "Untitled"
 				(path "/81d8a60b-fb85-4750-b4ba-90a418a69e1e"
@@ -1178,6 +1238,26 @@
 		(pin "SPI_MISO_LORA" input
 			(at 74.93 71.12 270)
 			(uuid "f7733098-ee1b-4ecf-9481-197098e7054c")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "ADC_CTRL" input
+			(at 44.45 71.12 270)
+			(uuid "e625911b-39c3-429e-a6b4-4ee0e78320a2")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "BATTERY_PIN" input
+			(at 39.37 71.12 270)
+			(uuid "4f5f26f9-ab06-47a9-a0b9-0679430d93fb")
 			(effects
 				(font
 					(size 1.27 1.27)

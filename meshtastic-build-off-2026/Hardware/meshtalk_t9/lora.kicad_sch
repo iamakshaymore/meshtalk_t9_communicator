@@ -661,16 +661,16 @@
 		)
 	)
 	(junction
-		(at 85.09 76.2)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "7f6d9e7c-7fe2-4ca9-8f7d-c5e71bd59090")
-	)
-	(junction
 		(at 96.52 78.74)
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "880366af-789a-4f4f-9969-d74e21de80dc")
+	)
+	(junction
+		(at 85.09 76.2)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "ce842ef2-f6c5-456e-bc07-b9ec622c4aa6")
 	)
 	(wire
 		(pts
@@ -741,16 +741,6 @@
 			(type default)
 		)
 		(uuid "421098cd-2a51-4fe6-b845-50fc27378c80")
-	)
-	(wire
-		(pts
-			(xy 85.09 78.74) (xy 85.09 76.2)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "482199cb-67f2-4d90-84bf-9633d58f46a1")
 	)
 	(wire
 		(pts
@@ -871,6 +861,16 @@
 			(type default)
 		)
 		(uuid "f57b6b46-8035-4cd2-8fee-b732d776d338")
+	)
+	(wire
+		(pts
+			(xy 85.09 76.2) (xy 85.09 78.74)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "fa1852ff-464d-4915-ad14-d94859c3c759")
 	)
 	(hierarchical_label "LORA_RST"
 		(shape input)
