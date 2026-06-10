@@ -1,0 +1,45 @@
+### Footprint positions - created on 2026-06-10T11:02:45+0530 ###
+### Printed by KiCad version 9.0.3
+## Unit = mm, Angle = deg.
+## Side : All
+# Ref     Val                          Package                                                      PosX       PosY       Rot  Side
+SW2       SW_Push                      SW_SPST_Omron_B3FS-100xP                                  72.0000   -80.7500  180.0000  bottom
+SW3       SW_Push                      SW_SPST_Omron_B3FS-100xP                                  61.7500   -80.7500  180.0000  bottom
+SW4       SW_Push                      SW_SPST_Omron_B3FS-100xP                                  51.5000   -80.7500  180.0000  bottom
+SW5       SW_Push                      SW_SPST_Omron_B3FS-100xP                                  41.2500   -80.7500  180.0000  bottom
+SW6       SW_Push                      SW_SPST_Omron_B3FS-100xP                                  72.0000   -89.5000  180.0000  bottom
+SW7       SW_Push                      SW_SPST_Omron_B3FS-100xP                                  61.7500   -89.5000  180.0000  bottom
+SW8       SW_Push                      SW_SPST_Omron_B3FS-100xP                                  51.5000   -89.5000  180.0000  bottom
+SW9       SW_Push                      SW_SPST_Omron_B3FS-100xP                                  41.2500   -89.5000  180.0000  bottom
+SW10      SW_Push                      SW_SPST_Omron_B3FS-100xP                                  72.0000   -98.2500  180.0000  bottom
+SW11      SW_Push                      SW_SPST_Omron_B3FS-100xP                                  61.7500   -98.2500  180.0000  bottom
+SW12      SW_Push                      SW_SPST_Omron_B3FS-100xP                                  51.5000   -98.2500  180.0000  bottom
+SW13      SW_Push                      SW_SPST_Omron_B3FS-100xP                                  41.2500   -98.2500  180.0000  bottom
+SW14      SW_Push                      SW_SPST_Omron_B3FS-100xP                                  72.0000  -107.0000  180.0000  bottom
+SW15      SW_Push                      SW_SPST_Omron_B3FS-100xP                                  61.7500  -107.0000  180.0000  bottom
+SW16      SW_Push                      SW_SPST_Omron_B3FS-100xP                                  51.5000  -107.0000  180.0000  bottom
+SW17      SW_Push                      SW_SPST_Omron_B3FS-100xP                                  41.2500  -107.0000  180.0000  bottom
+C1        10uF                         C_0805_2012Metric                                         75.4000   -40.4500  -90.0000  top
+C2        0.1uF                        C_0805_2012Metric                                         72.7500   -44.2500  -90.0000  top
+C3        0.1uf                        C_0805_2012Metric                                         77.6500   -44.2500  -90.0000  top
+C4        10uF                         C_0805_2012Metric                                         76.4600   -36.2500  180.0000  top
+C5        10uF                         C_0805_2012Metric                                         44.7100   -35.5000  180.0000  top
+C6        0.1uF                        C_0805_2012Metric                                         40.0000   -63.2000  -90.0000  top
+D1        D_Schottky                   LED_0805_2012Metric                                       48.2500   -38.5000  180.0000  top
+J1        USB_C_Receptacle_USB2.0_16P  USB_C_Receptacle_HRO_TYPE-C-31-M-12                       59.7600   -39.2950    0.0000  top
+J2        Conn_01x02_Socket            Molex_PicoBlade_53261-0271_1x02-1MP_P1.25mm_Horizontal    39.1250   -69.6500    0.0000  top
+Q1        Q_PMOS_GSD                   SOT-23                                                    49.5625   -42.2000  180.0000  top
+Q2        2N7002                       SOT-23                                                    43.8200   -66.0250    0.0000  top
+R1        10k                          R_0805_2012Metric                                         67.9000   -44.2500  -90.0000  top
+R2        5.1k                         R_0805_2012Metric                                         52.4125   -38.5000  180.0000  top
+R3        5.1k                         R_0805_2012Metric                                         52.4125   -35.5500  180.0000  top
+R4        100k                         R_0805_2012Metric                                         48.3375   -35.5000  180.0000  top
+R5        390k                         C_0805_2012Metric                                         46.7500   -68.0000    0.0000  top
+R6        100k                         C_0805_2012Metric                                         46.7500   -71.7500    0.0000  top
+R7        2k                           C_0805_2012Metric                                         48.7500   -46.5000  180.0000  top
+SW1       SW_Push                      SW_SPST_Omron_B3FS-100xP                                  54.0000   -69.2500    0.0000  top
+U1        ESP32-S3-WROOM-1             ESP32-S3-WROOM-1                                          72.7500   -56.7500  -90.0000  top
+U2        AP2112K-3.3                  SOT-23-5                                                  69.8625   -36.2000  180.0000  top
+U3        MCP73831-2-MC                DFN-8-1EP_3x2mm_P0.5mm_EP1.7x1.4mm                        44.3500   -45.1750  -90.0000  top
+U4        Wio-SX1262                   Wio_SX1262                                                43.7500   -50.5787  -90.0000  top
+## End
