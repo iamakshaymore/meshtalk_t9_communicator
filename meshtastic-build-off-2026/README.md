@@ -4,6 +4,16 @@
 
 This directory contains the custom hardware design for the **MESHTASTIC Build-Off 2026** competition entry. The goal is to create a custom PCB-based Meshtastic device with integrated display and keypad interface.
 
+## PCB Renders
+
+### Front
+
+![PCB Front Render](Hardware/Front.jpg)
+
+### Back
+
+![PCB Back Render](Hardware/Back.jpg)
+
 ## Competition Entry
 
 - **Event:** MESHTASTIC Build-Off 2026
