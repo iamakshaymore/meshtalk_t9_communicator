@@ -53,11 +53,11 @@ This directory contains the custom hardware design for the **MESHTASTIC Build-Of
 ## Development Phases
 
 ### Phase 1: PCB Design ⚡ (Current)
-- [ ] Schematic design
-- [ ] Component selection and sourcing
-- [ ] PCB layout and routing
-- [ ] Power circuit design
-- [ ] Antenna integration planning
+- [x] Schematic design (Done Jun 19, 2026)
+- [x] Component selection and sourcing (Done Jun 19, 2026)
+- [x] PCB layout and routing (Done Jun 19, 2026)
+- [x] Power circuit design (Done Jun 19, 2026)
+- [x] Antenna integration planning (Done Jun 19, 2026)
 
 ### Phase 2: Firmware Adaptation 🔧
 - [ ] Port custom UI to new hardware
