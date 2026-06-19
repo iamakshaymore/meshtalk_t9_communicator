@@ -1193,6 +1193,24 @@
 				(hide yes)
 			)
 		)
+		(property "MPN" "B3FS-1002P"
+			(at 109.22 102.87 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Manufacturer" "Omron"
+			(at 109.22 102.87 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 		(pin "1"
 			(uuid "6aa85e13-daf6-48df-bbd9-55b88851779d")
 		)
@@ -1213,7 +1231,7 @@
 		(at 73.66 50.8 270)
 		(unit 1)
 		(exclude_from_sim no)
-		(in_bom yes)
+		(in_bom no)
 		(on_board yes)
 		(dnp no)
 		(uuid "1af7bff6-eb35-459f-b4cd-df74f744d084")
@@ -1262,6 +1280,15 @@
 				(hide yes)
 			)
 		)
+		(property "MPN" ""
+			(at 73.66 50.8 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 		(pin "1"
 			(uuid "87c2c214-4ce9-45a4-b39e-a1ec8ca532d9")
 		)
@@ -1279,7 +1306,7 @@
 		(at 73.66 58.42 270)
 		(unit 1)
 		(exclude_from_sim no)
-		(in_bom yes)
+		(in_bom no)
 		(on_board yes)
 		(dnp no)
 		(uuid "20e637f5-b9b8-4170-b865-6ec882514d1d")
@@ -1328,6 +1355,15 @@
 				(hide yes)
 			)
 		)
+		(property "MPN" ""
+			(at 73.66 58.42 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 		(pin "1"
 			(uuid "1044103a-c39b-4d21-b7ff-4dd67daf1cd1")
 		)
@@ -1345,7 +1381,7 @@
 		(at 73.66 63.5 270)
 		(unit 1)
 		(exclude_from_sim no)
-		(in_bom yes)
+		(in_bom no)
 		(on_board yes)
 		(dnp no)
 		(uuid "23890b93-020b-4d0b-b567-35ef543c0e19")
@@ -1387,6 +1423,15 @@
 		)
 		(property "Description" "test point"
 			(at 73.66 63.5 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "MPN" ""
+			(at 73.66 63.5 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1452,6 +1497,24 @@
 			)
 		)
 		(property "Description" "Push button switch, generic, two pins"
+			(at 109.22 123.19 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "MPN" "B3FS-1002P"
+			(at 109.22 123.19 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Manufacturer" "Omron"
 			(at 109.22 123.19 0)
 			(effects
 				(font
@@ -1529,6 +1592,24 @@
 				(hide yes)
 			)
 		)
+		(property "MPN" "B3FS-1002P"
+			(at 121.92 113.03 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Manufacturer" "Omron"
+			(at 121.92 113.03 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 		(pin "1"
 			(uuid "fa3c473b-ecd9-44a7-aad9-710cb266d0df")
 		)
@@ -1549,7 +1630,7 @@
 		(at 73.66 66.04 270)
 		(unit 1)
 		(exclude_from_sim no)
-		(in_bom yes)
+		(in_bom no)
 		(on_board yes)
 		(dnp no)
 		(uuid "2f2e0086-8a7f-4195-b2cd-590bc5ed8ffc")
@@ -1591,6 +1672,15 @@
 		)
 		(property "Description" "test point"
 			(at 73.66 66.04 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "MPN" ""
+			(at 73.66 66.04 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1664,6 +1754,24 @@
 				(hide yes)
 			)
 		)
+		(property "MPN" "B3FS-1002P"
+			(at 96.52 123.19 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Manufacturer" "Omron"
+			(at 96.52 123.19 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 		(pin "1"
 			(uuid "10a37e82-a184-488f-8ef0-5db9d5662792")
 		)
@@ -1725,6 +1833,24 @@
 			)
 		)
 		(property "Description" "Push button switch, generic, two pins"
+			(at 83.82 123.19 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "MPN" "B3FS-1002P"
+			(at 83.82 123.19 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Manufacturer" "Omron"
 			(at 83.82 123.19 0)
 			(effects
 				(font
@@ -1869,6 +1995,24 @@
 				(hide yes)
 			)
 		)
+		(property "MPN" "B3FS-1002P"
+			(at 109.22 92.71 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Manufacturer" "Omron"
+			(at 109.22 92.71 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 		(pin "1"
 			(uuid "0742cf31-a8b8-49f5-86b5-d06d2280ad38")
 		)
@@ -1930,6 +2074,24 @@
 			)
 		)
 		(property "Description" "Push button switch, generic, two pins"
+			(at 83.82 113.03 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "MPN" "B3FS-1002P"
+			(at 83.82 113.03 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Manufacturer" "Omron"
 			(at 83.82 113.03 0)
 			(effects
 				(font
@@ -2007,6 +2169,24 @@
 				(hide yes)
 			)
 		)
+		(property "MPN" "B3FS-1002P"
+			(at 121.92 123.19 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Manufacturer" "Omron"
+			(at 121.92 123.19 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 		(pin "1"
 			(uuid "959f2659-7b26-4889-8967-542fe86d81a9")
 		)
@@ -2068,6 +2248,24 @@
 			)
 		)
 		(property "Description" "Push button switch, generic, two pins"
+			(at 96.52 113.03 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "MPN" "B3FS-1002P"
+			(at 96.52 113.03 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Manufacturer" "Omron"
 			(at 96.52 113.03 0)
 			(effects
 				(font
@@ -2145,6 +2343,24 @@
 				(hide yes)
 			)
 		)
+		(property "MPN" "B3FS-1002P"
+			(at 83.82 102.87 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Manufacturer" "Omron"
+			(at 83.82 102.87 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 		(pin "1"
 			(uuid "70b6886a-4c76-404e-b400-2e45bec697f1")
 		)
@@ -2206,6 +2422,24 @@
 			)
 		)
 		(property "Description" "Push button switch, generic, two pins"
+			(at 121.92 102.87 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "MPN" "B3FS-1002P"
+			(at 121.92 102.87 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Manufacturer" "Omron"
 			(at 121.92 102.87 0)
 			(effects
 				(font
@@ -2283,6 +2517,24 @@
 				(hide yes)
 			)
 		)
+		(property "MPN" "B3FS-1002P"
+			(at 83.82 92.71 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Manufacturer" "Omron"
+			(at 83.82 92.71 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 		(pin "1"
 			(uuid "371d8b93-3c6b-4e27-bad8-cd9f65949694")
 		)
@@ -2303,7 +2555,7 @@
 		(at 73.66 55.88 270)
 		(unit 1)
 		(exclude_from_sim no)
-		(in_bom yes)
+		(in_bom no)
 		(on_board yes)
 		(dnp no)
 		(uuid "92082a53-b046-4849-b0fa-1e84dd48eb26")
@@ -2352,6 +2604,15 @@
 				(hide yes)
 			)
 		)
+		(property "MPN" ""
+			(at 73.66 55.88 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 		(pin "1"
 			(uuid "b6bb4469-4614-487c-a243-eb8c48c754d3")
 		)
@@ -2369,7 +2630,7 @@
 		(at 73.66 60.96 270)
 		(unit 1)
 		(exclude_from_sim no)
-		(in_bom yes)
+		(in_bom no)
 		(on_board yes)
 		(dnp no)
 		(uuid "a4264ef4-5cba-4158-9687-a0be545806e2")
@@ -2418,6 +2679,15 @@
 				(hide yes)
 			)
 		)
+		(property "MPN" ""
+			(at 73.66 60.96 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 		(pin "1"
 			(uuid "9414a028-8aa5-4c4a-a3c8-08a2d8174a37")
 		)
@@ -2435,7 +2705,7 @@
 		(at 73.66 68.58 270)
 		(unit 1)
 		(exclude_from_sim no)
-		(in_bom yes)
+		(in_bom no)
 		(on_board yes)
 		(dnp no)
 		(uuid "a4f0d8e3-6840-4fad-ba9d-dacc5426dc6e")
@@ -2477,6 +2747,15 @@
 		)
 		(property "Description" "test point"
 			(at 73.66 68.58 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "MPN" ""
+			(at 73.66 68.58 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2542,6 +2821,24 @@
 			)
 		)
 		(property "Description" "Push button switch, generic, two pins"
+			(at 109.22 113.03 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "MPN" "B3FS-1002P"
+			(at 109.22 113.03 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Manufacturer" "Omron"
 			(at 109.22 113.03 0)
 			(effects
 				(font
@@ -2619,6 +2916,24 @@
 				(hide yes)
 			)
 		)
+		(property "MPN" "B3FS-1002P"
+			(at 121.92 92.71 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Manufacturer" "Omron"
+			(at 121.92 92.71 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 		(pin "1"
 			(uuid "65f9e383-2544-4352-a266-1b40acd1100f")
 		)
@@ -2680,6 +2995,24 @@
 			)
 		)
 		(property "Description" "Push button switch, generic, two pins"
+			(at 96.52 102.87 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "MPN" "B3FS-1002P"
+			(at 96.52 102.87 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Manufacturer" "Omron"
 			(at 96.52 102.87 0)
 			(effects
 				(font
@@ -2775,7 +3108,7 @@
 		(at 73.66 53.34 270)
 		(unit 1)
 		(exclude_from_sim no)
-		(in_bom yes)
+		(in_bom no)
 		(on_board yes)
 		(dnp no)
 		(uuid "ed448fb8-1d60-46b0-8b79-f12bd61b58e1")
@@ -2817,6 +3150,15 @@
 		)
 		(property "Description" "test point"
 			(at 73.66 53.34 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "MPN" ""
+			(at 73.66 53.34 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2882,6 +3224,24 @@
 			)
 		)
 		(property "Description" "Push button switch, generic, two pins"
+			(at 96.52 92.71 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "MPN" "B3FS-1002P"
+			(at 96.52 92.71 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Manufacturer" "Omron"
 			(at 96.52 92.71 0)
 			(effects
 				(font

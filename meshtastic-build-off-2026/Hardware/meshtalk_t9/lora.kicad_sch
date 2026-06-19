@@ -784,6 +784,16 @@
 	)
 	(wire
 		(pts
+			(xy 128.2192 68.58) (xy 132.08 68.58)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "853c92c7-da84-455e-95ac-c189ba1d7bcb")
+	)
+	(wire
+		(pts
 			(xy 102.87 68.6054) (xy 102.87 69.85)
 		)
 		(stroke
@@ -801,6 +811,16 @@
 			(type default)
 		)
 		(uuid "96b6e8f6-a97c-4aa1-b7ca-0f9cc8b8e75c")
+	)
+	(wire
+		(pts
+			(xy 96.52 60.96) (xy 102.87 60.96)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "98ed2af7-5c97-4526-9bd8-7c15775c6ff1")
 	)
 	(wire
 		(pts
@@ -824,6 +844,16 @@
 	)
 	(wire
 		(pts
+			(xy 128.2192 68.58) (xy 128.2192 68.6054)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "b71014a1-f8a6-4ff6-b8ed-cc615ca117e2")
+	)
+	(wire
+		(pts
 			(xy 97.79 69.85) (xy 97.79 68.58)
 		)
 		(stroke
@@ -831,6 +861,16 @@
 			(type default)
 		)
 		(uuid "b8a2e6b6-73d4-46ba-b199-c36a20b930a8")
+	)
+	(wire
+		(pts
+			(xy 102.87 60.96) (xy 102.87 61.0108)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "c280abbb-e85d-4be1-a21a-2e8f1e066c9b")
 	)
 	(wire
 		(pts
@@ -871,6 +911,17 @@
 			(type default)
 		)
 		(uuid "fa1852ff-464d-4915-ad14-d94859c3c759")
+	)
+	(hierarchical_label "LORA_RF_SW1"
+		(shape input)
+		(at 96.52 60.96 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "5969fe63-6473-4b54-8146-e17a1cbf1856")
 	)
 	(hierarchical_label "LORA_RST"
 		(shape input)
@@ -916,7 +967,7 @@
 		)
 		(uuid "65d0ab44-ee08-45cc-9bb9-585d6c4d464b")
 	)
-	(hierarchical_label "LORA_DI02"
+	(hierarchical_label "LORA_BUSY"
 		(shape input)
 		(at 132.08 66.04 0)
 		(effects
@@ -1005,6 +1056,15 @@
 		)
 		(property "Manufacturer" "SenseCAP"
 			(at 115.5446 68.6054 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "MPN" "Wio-SX1262"
+			(at 115.57 69.85 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1176,6 +1236,24 @@
 				(hide yes)
 			)
 		)
+		(property "MPN" "CC0805KRX7R9BB104"
+			(at 88.9 78.74 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Manufacturer" "YAGEO"
+			(at 88.9 78.74 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 		(pin "2"
 			(uuid "9bbb6251-2211-4c60-bc1d-729926a6bedc")
 		)
@@ -1253,6 +1331,73 @@
 			(project ""
 				(path "/81d8a60b-fb85-4750-b4ba-90a418a69e1e/00cd80e2-981f-4300-9615-3109ca1a0085"
 					(reference "#PWR06")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 132.08 68.58 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "914799ee-462f-44e1-977c-d65c7aefa434")
+		(property "Reference" "#PWR017"
+			(at 138.43 68.58 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "GND"
+			(at 135.89 68.5799 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(property "Footprint" ""
+			(at 132.08 68.58 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 132.08 68.58 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 132.08 68.58 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "1a112aa9-25f2-4dda-8b13-dc76aaef1107")
+		)
+		(instances
+			(project ""
+				(path "/81d8a60b-fb85-4750-b4ba-90a418a69e1e/00cd80e2-981f-4300-9615-3109ca1a0085"
+					(reference "#PWR017")
 					(unit 1)
 				)
 			)

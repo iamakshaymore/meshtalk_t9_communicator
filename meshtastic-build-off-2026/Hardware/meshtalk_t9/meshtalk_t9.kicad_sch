@@ -167,6 +167,16 @@
 	)
 	(wire
 		(pts
+			(xy 27.94 71.12) (xy 27.94 78.74)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "4b9a7527-f094-48ed-9dae-e0ab34ee40e9")
+	)
+	(wire
+		(pts
 			(xy 109.22 36.83) (xy 101.6 36.83)
 		)
 		(stroke
@@ -274,6 +284,16 @@
 			(type default)
 		)
 		(uuid "797b0467-276e-4c4c-811d-8a5b3f731ced")
+	)
+	(wire
+		(pts
+			(xy 34.29 71.12) (xy 34.29 78.74)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "7b87b05d-e8e7-4530-9a7a-7845b0c28d44")
 	)
 	(wire
 		(pts
@@ -649,16 +669,6 @@
 				(justify right)
 			)
 		)
-		(pin "LORA_DI02" input
-			(at 62.23 78.74 90)
-			(uuid "5ef664b7-9b66-43f9-9721-75a5c1264d3e")
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-			)
-		)
 		(pin "LORA_DI01" input
 			(at 58.42 78.74 90)
 			(uuid "b54107ad-46af-4e99-9834-e5af776aa9d6")
@@ -699,8 +709,28 @@
 				(justify right)
 			)
 		)
+		(pin "LORA_RF_SW1" input
+			(at 34.29 78.74 90)
+			(uuid "21bb3559-69a6-4195-9ab9-ecd9eb379572")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "LORA_BUSY" input
+			(at 27.94 78.74 90)
+			(uuid "2f75a460-3516-4706-8050-ef991ae5ebb1")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
 		(instances
-			(project "Untitled"
+			(project "meshtalk_t9"
 				(path "/81d8a60b-fb85-4750-b4ba-90a418a69e1e"
 					(page "4")
 				)
@@ -882,7 +912,7 @@
 			)
 		)
 		(instances
-			(project "Untitled"
+			(project "meshtalk_t9"
 				(path "/81d8a60b-fb85-4750-b4ba-90a418a69e1e"
 					(page "5")
 				)
@@ -974,7 +1004,7 @@
 			)
 		)
 		(instances
-			(project "Untitled"
+			(project "meshtalk_t9"
 				(path "/81d8a60b-fb85-4750-b4ba-90a418a69e1e"
 					(page "3")
 				)
@@ -1028,16 +1058,6 @@
 		(pin "LORA_DI01" input
 			(at 58.42 71.12 270)
 			(uuid "c1574414-940b-403f-bc02-3e8abdcf92a5")
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(pin "LORA_DI02" input
-			(at 62.23 71.12 270)
-			(uuid "eaf0bd2e-2650-454d-b4db-5e3e8adf92da")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1265,8 +1285,28 @@
 				(justify left)
 			)
 		)
+		(pin "LORA_RF_SW1" input
+			(at 34.29 71.12 270)
+			(uuid "e65fb29f-6d15-40a7-80b9-e88437b33ef6")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "LORA_BUSY" input
+			(at 27.94 71.12 270)
+			(uuid "363e338b-9e66-414e-8cc9-40f66322ea7d")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
 		(instances
-			(project "Untitled"
+			(project "meshtalk_t9"
 				(path "/81d8a60b-fb85-4750-b4ba-90a418a69e1e"
 					(page "2")
 				)
