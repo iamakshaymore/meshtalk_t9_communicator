@@ -1,4 +1,4 @@
-### Footprint positions - created on 2026-06-18T15:05:18+0530 ###
+### Footprint positions - created on 2026-06-23T22:47:13+0530 ###
 ### Printed by KiCad version 9.0.3
 ## Unit = mm, Angle = deg.
 ## Side : All
@@ -20,12 +20,12 @@ SW14      SW_Push                      SW_SPST_Omron_B3FS-100xP                 
 SW15      SW_Push                      SW_SPST_Omron_B3FS-100xP                                  61.7500  -107.0000  180.0000  bottom
 SW16      SW_Push                      SW_SPST_Omron_B3FS-100xP                                  51.5000  -107.0000  180.0000  bottom
 SW17      SW_Push                      SW_SPST_Omron_B3FS-100xP                                  41.2500  -107.0000  180.0000  bottom
-C1        10uF                         C_0805_2012Metric                                         73.7500   -39.0000    0.0000  top
+C1        10uF_16V_X5R                 C_0805_2012Metric                                         73.7500   -39.0000    0.0000  top
 C2        0.1uF                        C_0805_2012Metric                                         77.7500   -39.0000    0.0000  top
 C3        0.1uF                        C_0805_2012Metric                                         73.7500   -42.5000    0.0000  top
-C4        10uF                         C_0805_2012Metric                                         41.0750   -38.8250    0.0000  top
-C5        10uF                         C_0805_2012Metric                                         37.7500   -42.7500    0.0000  top
-C6        0.1uF                        C_0805_2012Metric                                         54.4500   -46.7500    0.0000  top
+C4        10uF_16V_X5R                 C_0805_2012Metric                                         41.0750   -38.8250    0.0000  top
+C5        10uF_16V_X5R                 C_0805_2012Metric                                         37.7500   -42.7500    0.0000  top
+C6        0.1uF                        C_0805_2012Metric                                         44.7250   -60.9000  180.0000  top
 D1        D_Schottky                   D_SOD-123                                                 36.7500   -36.6250    0.0000  top
 J1        USB_C_Receptacle_USB2.0_16P  USB_C_Receptacle_HRO_TYPE-C-31-M-12                       59.7600   -39.2950    0.0000  top
 J2        Conn_01x02_Socket            Molex_PicoBlade_53261-0271_1x02-1MP_P1.25mm_Horizontal    39.1250   -69.6500    0.0000  top
@@ -40,10 +40,13 @@ R5        390k                         R_0805_2012Metric                        
 R6        100k                         R_0805_2012Metric                                         53.7000   -65.5000    0.0000  top
 R7        2k                           R_0805_2012Metric                                         52.3375   -38.7500  180.0000  top
 R8        100k                         R_0805_2012Metric                                         46.5000   -65.5000    0.0000  top
-R9        1k                           R_0805_2012Metric                                         70.0000   -42.5000    0.0000  top
+R9        470                          R_0805_2012Metric                                         70.0000   -42.5000    0.0000  top
+R10       10k                          R_0805_2012Metric                                         63.7375   -71.1750    0.0000  top
+R11       10k                          R_0805_2012Metric                                         44.7375   -55.7500  180.0000  top
 SW1       SW_Push                      SW_Push_1P1T_NO_CK_KMR2                                   66.7000   -66.9250    0.0000  top
 SW18      SW_Push                      SW_Push_1P1T_NO_CK_KMR2                                   60.3250   -66.9500    0.0000  top
 U1        ESP32-S3-WROOM-1             ESP32-S3-WROOM-1                                          80.0000   -54.0000  -90.0000  top
+U2        USBLC6-2SC6                  SOT-23-6                                                  68.0125   -36.6500    0.0000  top
 U3        MCP73831-2-MC                DFN-8-1EP_3x2mm_P0.5mm_EP1.7x1.4mm                        51.6750   -42.4000    0.0000  top
 U4        Wio-SX1262                   Wio_SX1262                                                49.0000   -49.3287  -90.0000  top
 U5        AP7361C-33E                  SOT-223-3_TabPin2                                         32.7500   -58.7500  180.0000  top

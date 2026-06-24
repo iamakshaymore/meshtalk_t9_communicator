@@ -2638,7 +2638,7 @@
 		)
 		(uuid "4b4a3f26-4531-46da-9e0c-6cee68050671")
 	)
-	(hierarchical_label "TFT_SCK"
+	(hierarchical_label "TFT_CLK"
 		(shape input)
 		(at 62.23 95.25 0)
 		(effects
@@ -2814,7 +2814,7 @@
 		)
 		(uuid "de215832-3d5d-40cd-946a-335e9d0b944d")
 	)
-	(hierarchical_label "DISPLAY_CS"
+	(hierarchical_label "TFT_CS"
 		(shape input)
 		(at 60.96 74.93 0)
 		(effects
@@ -4191,7 +4191,7 @@
 				(hide yes)
 			)
 		)
-		(property "MPN" "ESP32-S3-WROOM-1-N16R16VA"
+		(property "MPN" "ESP32-S3-WROOM-1-N16R8"
 			(at 68.58 74.93 0)
 			(effects
 				(font

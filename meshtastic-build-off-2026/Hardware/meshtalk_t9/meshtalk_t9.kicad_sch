@@ -851,29 +851,9 @@
 				(justify left)
 			)
 		)
-		(pin "SPI_MOSI" input
-			(at 193.04 62.23 270)
-			(uuid "a87c1933-601e-44eb-a928-5b088af299df")
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
 		(pin "TFT_DC" input
 			(at 172.72 54.61 180)
 			(uuid "5a6437c6-a3e6-4e37-8c6b-353cbf852423")
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(pin "DISPLAY_CS" input
-			(at 172.72 49.53 180)
-			(uuid "d10ed76b-290c-4ffe-925b-a7bdd8dd4f83")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -901,9 +881,29 @@
 				(justify left)
 			)
 		)
-		(pin "SPI_CLK" input
+		(pin "TFT_MOSI" input
+			(at 193.04 62.23 270)
+			(uuid "7fa74df0-670f-4135-9530-8839ef5dea68")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "TFT_CLK" input
 			(at 196.85 62.23 270)
-			(uuid "37141779-fde0-4b7b-a19a-883a810b2c72")
+			(uuid "6e1ae174-595f-4cce-b972-75ebab3674f5")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "TFT_CS" input
+			(at 172.72 49.53 180)
+			(uuid "7be808a4-0c35-42c3-bf73-ee02f21068f2")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1135,16 +1135,6 @@
 				(justify right)
 			)
 		)
-		(pin "DISPLAY_CS" input
-			(at 101.6 45.72 0)
-			(uuid "65b4bf97-2434-47f6-aa37-f3cdafb1c8a7")
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-			)
-		)
 		(pin "TFT_BL" input
 			(at 101.6 48.26 0)
 			(uuid "b8bfb840-6ac5-420e-89b8-6c84fc418c34")
@@ -1225,16 +1215,6 @@
 				(justify left)
 			)
 		)
-		(pin "TFT_SCK" input
-			(at 83.82 71.12 270)
-			(uuid "aa313b6b-5ecc-4599-9c10-2e904a540628")
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
 		(pin "SPI_SCK_LORA" input
 			(at 67.31 71.12 270)
 			(uuid "a2f7c808-26da-4164-9646-66d25b9faded")
@@ -1303,6 +1283,26 @@
 					(size 1.27 1.27)
 				)
 				(justify left)
+			)
+		)
+		(pin "TFT_CLK" input
+			(at 83.82 71.12 270)
+			(uuid "38588f1f-5f58-4dbe-924d-fbf5c4c01b79")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "TFT_CS" input
+			(at 101.6 45.72 0)
+			(uuid "81ba65e5-bd44-4c49-a188-be92b44a26e9")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
 			)
 		)
 		(instances
