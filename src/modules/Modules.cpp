@@ -269,7 +269,7 @@ void setupModules()
     routingModule = new RoutingModule();
 
     // Setup custom UI module if building for heltec-v3-custom or heltec-v4-custom variants
-#if defined(VARIANT_heltec_v3_custom) || defined(HELTEC_V3_CUSTOM) || defined(VARIANT_heltec_v4_custom) || defined(HELTEC_V4_CUSTOM)
+#if defined(VARIANT_heltec_v3_custom) || defined(HELTEC_V3_CUSTOM) || defined(VARIANT_heltec_v4_custom) || defined(HELTEC_V4_CUSTOM) || defined(MESHTALK_T9)
     setup_CustomUIModule();
 #endif
 }

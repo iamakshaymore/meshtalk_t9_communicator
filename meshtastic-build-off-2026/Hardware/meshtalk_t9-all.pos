@@ -1,4 +1,4 @@
-### Footprint positions - created on 2026-06-23T22:47:13+0530 ###
+### Footprint positions - created on 2026-07-13T16:00:55+0530 ###
 ### Printed by KiCad version 9.0.3
 ## Unit = mm, Angle = deg.
 ## Side : All
@@ -27,7 +27,7 @@ C4        10uF_16V_X5R                 C_0805_2012Metric                        
 C5        10uF_16V_X5R                 C_0805_2012Metric                                         37.7500   -42.7500    0.0000  top
 C6        0.1uF                        C_0805_2012Metric                                         44.7250   -60.9000  180.0000  top
 D1        D_Schottky                   D_SOD-123                                                 36.7500   -36.6250    0.0000  top
-J1        USB_C_Receptacle_USB2.0_16P  USB_C_Receptacle_HRO_TYPE-C-31-M-12                       59.7600   -39.2950    0.0000  top
+J1        USB_C_Receptacle_USB2.0_16P  USB_C_Receptacle_HRO_TYPE-C-31-M-12                       59.7250   -37.4500  180.0000  top
 J2        Conn_01x02_Socket            Molex_PicoBlade_53261-0271_1x02-1MP_P1.25mm_Horizontal    39.1250   -69.6500    0.0000  top
 Q1        Q_PMOS_GSD                   SOT-23                                                    46.9375   -42.7000    0.0000  top
 Q2        2N7002                       SOT-23                                                    46.6875   -69.7000    0.0000  top
