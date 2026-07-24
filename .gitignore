@@ -1,5 +1,6 @@
 .pio
 pio
+.pio-docker
 pio.tar
 web
 web.tar
@@ -75,3 +76,10 @@ bin/_generated/
 **/*.pos
 **/*.csv
 
+# portduino WASM build (pio run -e native-wasm) + Emscripten SDK. The artifacts land in
+# .pio/build/native-wasm/ (already ignored via .pio/); these cover the retired
+# standalone emcc build's output dirs and any in-repo emsdk checkout.
+build/wasm/
+build/wasm-obj/
+build/wasm-*.log
+.emsdk/

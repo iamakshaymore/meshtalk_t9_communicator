@@ -120,8 +120,8 @@ platformio run -e heltec-v4-custom -t upload
 ### Get Started
 
 - 🔧 **[Original Meshtastic Firmware](https://github.com/meshtastic/firmware)** – Upstream repository
-- 📖 **[Building Instructions](https://meshtastic.org/docs/development/firmware/build)** – Learn how to compile the firmware from source.
-- ⚡ **[Flashing Instructions](https://meshtastic.org/docs/getting-started/flashing-firmware/)** – Install or update the firmware on your device.
+- 📖 **[Building Instructions](https://meshtastic.org/docs/development/firmware/build)** - Learn how to compile the firmware from source.
+- ⚡ **[Flashing Instructions](https://meshtastic.org/docs/getting-started/flashing-firmware/)** - Install or update the firmware on your device.
 
 Join the Meshtastic community and help improve the project! 🚀
 
