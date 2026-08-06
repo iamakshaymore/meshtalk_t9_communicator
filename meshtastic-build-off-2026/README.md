@@ -25,6 +25,43 @@ This directory contains the custom hardware design for the **MESHTASTIC Build-Of
 </tr>
 </table>
 
+## Schematics
+
+<table>
+<tr>
+<td width="50%">
+
+**ESP32-S3 Core**
+
+![ESP32 Schematic](Demo/images/esp32.png)
+
+</td>
+<td width="50%">
+
+**LoRa Module**
+
+![LoRa Schematic](Demo/images/lora.png)
+
+</td>
+</tr>
+<tr>
+<td width="50%">
+
+**User Interface**
+
+![UI Schematic](Demo/images/user_interface.png)
+
+</td>
+<td width="50%">
+
+**Power Management**
+
+![Power Schematic](Demo/images/power_management.png)
+
+</td>
+</tr>
+</table>
+
 ## Device Photos
 
 ### Assembled Device
