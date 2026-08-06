@@ -60,7 +60,7 @@ This directory contains the custom hardware design for the **MESHTASTIC Build-Of
 
 - **Event:** MESHTASTIC Build-Off 2026
 - **Category:** Custom Hardware Design
-- **Project Status:** Phase 1 - Design & Development
+- **Project Status:** Complete - Ready for Competition
 
 ## Hardware Specifications
 
@@ -124,14 +124,6 @@ This directory contains the custom hardware design for the **MESHTASTIC Build-Of
 - [x] Power consumption analysis (Done Aug 2026)
 - [x] Field testing and optimization (Done Aug 2026)
 
-## Based On
-
-This design builds upon proven firmware developed and tested on:
-- Heltec WiFi LoRa 32 V3
-- Heltec WiFi LoRa 32 V4
-
-The custom PCB will incorporate lessons learned and optimizations from these reference platforms.
-
 ## Bill of Materials (BOM)
 
 | Order | Reference | MPN/SKU | Quantity | Unit Cost | Description |
@@ -165,7 +157,6 @@ The custom PCB will incorporate lessons learned and optimizations from these ref
 | **Display** | ST7789 TFT LCD 240x320 | 1 | 2.4" color display |
 | **Battery** | Li-Po 3.7V 2000mAh | 1 | Rechargeable battery |
 | **Antenna** | 868/915MHz LoRa Antenna | 1 | External SMA or U.FL |
-| **Enclosure** | Custom 3D printed case | 1 | ABS or PETG material |
 
 ### Cost Summary
 
@@ -178,11 +169,7 @@ The custom PCB will incorporate lessons learned and optimizations from these ref
 
 *Note: Prices based on small quantity orders (5 units). Costs decrease significantly with larger production runs.*
 
-## Contact & Updates
-
-This is an active development project. Design files and documentation will be added as the project progresses through each phase.
-
 ---
 
-**Competition Preparation Status:** In Progress  
-**Last Updated:** June 2026
+**Competition Preparation Status:** Complete  
+**Last Updated:** August 2026
