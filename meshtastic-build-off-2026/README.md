@@ -56,6 +56,16 @@ This directory contains the custom hardware design for the **MESHTASTIC Build-Of
 </tr>
 </table>
 
+## Device Demonstration
+
+### Video Walkthrough
+
+<div align="center">
+  <iframe src="https://drive.google.com/file/d/14EuYKU1ftvDvArWkbm3pBw8lZNBgqO2j/preview" width="640" height="480" allow="autoplay" frameborder="0"></iframe>
+</div>
+
+*Device demonstration showing the T9 interface, messaging, and LoRa mesh functionality*
+
 ## Competition Entry
 
 - **Event:** MESHTASTIC Build-Off 2026
