@@ -2,7 +2,7 @@
 
 #include "configuration.h"
 
-#if defined(VARIANT_heltec_v3_custom) || defined(VARIANT_heltec_v4_custom)
+#if defined(VARIANT_heltec_v3_custom) || defined(VARIANT_heltec_v4_custom) || defined(MESHTALK_T9)
 
 #include "SinglePortModule.h"
 #include "concurrency/OSThread.h"

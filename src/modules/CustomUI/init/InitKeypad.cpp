@@ -15,11 +15,15 @@ char InitKeypad::keys[InitKeypad::ROWS][InitKeypad::COLS] = {
     {'A', '3', '2', '1'}
 };
 
-// Keypad pins - conditional for V3 and V4 variants
+// Keypad pins - conditional for V3, V4, and MESHTALK_T9 variants
 #if defined(VARIANT_heltec_v4_custom)
     // Heltec V4 Custom keypad matrix pins (I2C disabled, USB pins avoided)
     byte InitKeypad::rowPins[InitKeypad::ROWS] = {42, 39, 17, 18};     // KEY_R1, KEY_R2, KEY_R3, KEY_R4 (I2C disabled in variant.h)
     byte InitKeypad::colPins[InitKeypad::COLS] = {41, 40, 48, 47};  // KEY_C1, KEY_C2, KEY_C3, KEY_C4 (avoiding USB pins 19/20)
+#elif defined(MESHTALK_T9)
+    // MeshTalk T9 keypad matrix pins (4×4 matrix)
+    byte InitKeypad::rowPins[InitKeypad::ROWS] = {41, 40, 39, 38};  // reversed
+    byte InitKeypad::colPins[InitKeypad::COLS] = {42, 2, 1, 48};    // reversed
 #else
     // Heltec V3 Custom keypad matrix pins (default)
     byte InitKeypad::rowPins[InitKeypad::ROWS] = {26, 21, 20, 19};

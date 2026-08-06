@@ -16,7 +16,7 @@
 // Divider R5(390kΩ) / R10(10kΩ) on GPIO8
 // Drive ADC_CTRL HIGH before sampling, LOW after to kill quiescent current
 #define BATTERY_PIN                   8
-#define ADC_CHANNEL                   ADC1_CHANNEL_7
+#define ADC_CHANNEL                   ADC_CHANNEL_7
 #define BATTERY_SENSE_RESOLUTION_BITS 12
 #define ADC_MULTIPLIER                40.0
 #define ADC_ATTENUATION               ADC_ATTEN_DB_0

@@ -11,8 +11,8 @@
 // CHANGED: XIAO uses 47/48 for its I2C screen connector
 // No I2C devices on MeshTalk T9 — mapped to unconnected GPIOs
 // to prevent any library calling Wire.begin() from clashing with TFT_BL (GPIO4)
-static const uint8_t SDA = 35;
-static const uint8_t SCL = 36;
+static const uint8_t SDA = 45;
+static const uint8_t SCL = 46;
 
 // CHANGED: XIAO LoRa SPI is 8/7/9/41 (B2B connector pins)
 // MeshTalk T9 LoRa SPI is on different GPIOs

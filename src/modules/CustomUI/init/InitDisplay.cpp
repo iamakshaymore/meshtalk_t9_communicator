@@ -12,7 +12,7 @@
 #define LOG_INFO(format, ...) Serial.printf("[INFO] " format "\n", ##__VA_ARGS__)
 #endif
 
-// Display pins - conditional for V3 and V4 variants
+// Display pins - conditional for V3, V4, and MESHTALK_T9 variants
 #if defined(VARIANT_heltec_v4_custom)
     // Heltec V4 Custom with external ST7789
     #define TFT_MOSI 5  // Data line - GPIO33 (DISP_MOSI)
@@ -21,6 +21,14 @@
     #define TFT_DC   21  // Data/Command - GPIO21 (DISP_DC)
     #define TFT_RST  3  // Reset - GPIO17 (DISP_RST)
     #define TFT_BL   4  // Backlight - GPIO34 (DISP_BL)
+#elif defined(MESHTALK_T9)
+    // MeshTalk T9 with external ST7789 (SPI Bus 2)
+    #define TFT_MOSI 16  // Data line (DIN) - GPIO16
+    #define TFT_SCLK 15  // Clock line (CLK) - GPIO15
+    #define TFT_CS   7   // Chip select - GPIO7
+    #define TFT_DC   6   // Data/Command - GPIO6
+    #define TFT_RST  5   // Reset - GPIO5
+    #define TFT_BL   4   // Backlight - GPIO4
 #else
     // Heltec V3 Custom with external ST7789 (default)
     #define TFT_MOSI 5   // Data line - GPIO5
@@ -77,6 +85,10 @@ class LGFX : public lgfx::LGFX_Device
             cfg.offset_x = 0;
             cfg.offset_y = 0;
             cfg.offset_rotation = 0;
+            #if defined(MESHTALK_T9)
+            cfg.offset_rotation = 2; // Rotate display 180 degrees for MESHTALK_T9
+            #endif
+
             cfg.dummy_read_pixel = 8;
             cfg.dummy_read_bits = 1;
             cfg.readable = false;
