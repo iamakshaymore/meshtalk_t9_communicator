@@ -14,6 +14,20 @@ This directory contains the custom hardware design for the **MESHTASTIC Build-Of
 
 ![PCB Back Render](Hardware/Back.jpg)
 
+## Device Photos
+
+### Assembled Device
+
+![Device Photo 1](Demo/images/IMG_6619.JPG)
+
+![Device Photo 2](Demo/images/IMG_6629.JPG)
+
+### Display & Interface
+
+![Display Interface](Demo/images/IMG_6630.JPG)
+
+![Device in Operation](Demo/images/IMG_6632.jpg)
+
 ## Competition Entry
 
 - **Event:** MESHTASTIC Build-Off 2026
@@ -62,25 +76,25 @@ This directory contains the custom hardware design for the **MESHTASTIC Build-Of
 
 ## Development Phases
 
-### Phase 1: PCB Design ⚡ (Current)
+### Phase 1: PCB Design ⚡ (Completed)
 - [x] Schematic design (Done Jun 19, 2026)
 - [x] Component selection and sourcing (Done Jun 19, 2026)
 - [x] PCB layout and routing (Done Jun 19, 2026)
 - [x] Power circuit design (Done Jun 19, 2026)
 - [x] Antenna integration planning (Done Jun 19, 2026)
 
-### Phase 2: Firmware Adaptation 🔧
-- [ ] Port custom UI to new hardware
-- [ ] Update pin configurations
-- [ ] Test and optimize power management
-- [ ] Create custom variant configuration
+### Phase 2: Firmware Adaptation 🔧 (Completed)
+- [x] Port custom UI to new hardware (Done Aug 2026)
+- [x] Update pin configurations (Done Aug 2026)
+- [x] Test and optimize power management (Done Aug 2026)
+- [x] Create custom variant configuration (Done Aug 2026)
 
-### Phase 3: Testing & Validation ✅
-- [ ] Prototype assembly and bring-up
-- [ ] Hardware functionality testing
-- [ ] Range and mesh network testing
-- [ ] Power consumption analysis
-- [ ] Field testing and optimization
+### Phase 3: Testing & Validation ✅ (Completed)
+- [x] Prototype assembly and bring-up (Done Aug 2026)
+- [x] Hardware functionality testing (Done Aug 2026)
+- [x] Range and mesh network testing (Done Aug 2026)
+- [x] Power consumption analysis (Done Aug 2026)
+- [x] Field testing and optimization (Done Aug 2026)
 
 ## Based On
 
@@ -90,29 +104,51 @@ This design builds upon proven firmware developed and tested on:
 
 The custom PCB will incorporate lessons learned and optimizations from these reference platforms.
 
-## Rough Bill of Materials (BOM)
+## Bill of Materials (BOM)
 
-| Component | Part Number / Description | Quantity | Notes |
-|-----------|--------------------------|----------|-------|
-| **Microcontroller** | ESP32-S3-WROOM-1 | 1 | Main processor with WiFi |
-| **LoRa Module** | Wio-SX1262 Wireless Module | 1 | Sub-GHz LoRa transceiver |
+| Order | Reference | MPN/SKU | Quantity | Unit Cost | Description |
+|-------|-----------|---------|----------|-----------|-------------|
+| 1 | C2, C3, C6 | 302010165 | 3 | $0.06 | Capacitors |
+| 2 | R9 | 301010367 | 1 | $0.01 | Resistor |
+| 3 | R7 | 301010680 | 1 | $0.01 | Resistor |
+| 4 | R2, R3 | 301012180 | 2 | $0.01 | Resistors |
+| 5 | R1, R10, R11 | 301010361 | 3 | $0.01 | Resistors |
+| 6 | R4, R6, R8 | 301010396 | 3 | $0.01 | Resistors |
+| 7 | R5 | RC0805FR-07390KL | 1 | $0.23 | 390K Resistor |
+| 8 | C1, C4, C5 | 302010361 | 3 | $0.05 | Capacitors |
+| 9 | Q1, Q3 | 305031702 | 2 | $0.30 | Transistors |
+| 10 | Q2 | 305030028 | 1 | $0.13 | Transistor |
+| 11 | U5 | AP7361C-33E-13 | 1 | $2.20 | 3.3V Voltage Regulator |
+| 12 | J2 | 53261-0271 | 1 | $0.98 | Connector |
+| 13 | D1 | 304020028 | 1 | $0.40 | Diode |
+| 14 | U1 | ESP32-S3-WROOM-1-N16R8 | 1 | $6.35 | ESP32-S3 MCU (16MB Flash, 8MB PSRAM) |
+| 15 | D2 | 17-215/GHC-YR1S2/3T | 1 | $2.32 | LED |
+| 16 | U3 | MCP73831T-2ACI/MC | 1 | $1.18 | Li-Po Battery Charger IC |
+| 17 | SW2-SW17 | B3FS-1002P | 16 | $0.83 | Tactile Switches (4x4 Keypad) |
+| 18 | SW1, SW18 | KMR221G LFS | 2 | $3.13 | Tactile Switches (Reset/Boot) |
+| 19 | J1 | 320010859 | 1 | $0.75 | Connector (USB-C) |
+| 20 | U2 | USBLC6-2SC6 | 1 | $2.59 | USB ESD Protection IC |
+| 21 | U4 | 114993390 | 1 | $21.45 | LoRa Module/Display Module |
+
+### Additional Components (Not in PCB Assembly)
+
+| Component | Description | Quantity | Notes |
+|-----------|-------------|----------|-------|
 | **Display** | ST7789 TFT LCD 240x320 | 1 | 2.4" color display |
-| **Keypad** | 4x4 Matrix Keypad | 1 | Membrane or mechanical |
 | **Battery** | Li-Po 3.7V 2000mAh | 1 | Rechargeable battery |
-| **Charging IC** | TP4056 or MCP73831 | 1 | Li-Po battery charger |
-| **Voltage Regulator** | AMS1117-3.3 | 1 | 3.3V power supply |
-| **USB-C Connector** | USB Type-C Female | 1 | Power and programming |
-| **Antenna** | 868/915MHz LoRa Antenna | 1 | External or PCB trace |
-| **Crystal** | 32.768kHz | 1 | RTC oscillator (optional) |
-| **Resistors** | Various values | ~20 | Pull-ups, dividers |
-| **Capacitors** | 0.1μF, 10μF, 100μF | ~15 | Decoupling and filtering |
-| **LEDs** | Status LEDs | 2-3 | Power, charging, activity |
-| **Buttons** | Tactile switches | 2 | Reset, boot/user button |
-| **PCB** | Custom 2-layer or 4-layer | 1 | FR-4, ENIG finish |
+| **Antenna** | 868/915MHz LoRa Antenna | 1 | External SMA or U.FL |
+| **Enclosure** | Custom 3D printed case | 1 | ABS or PETG material |
 
-**Estimated Total Cost:** ~$35-50 per unit (excluding assembly)
+### Cost Summary
 
-*Note: Part numbers and quantities are preliminary and subject to change during detailed design.*
+- **PCB Components:** ~$98.88 per unit (based on 5-unit order)
+- **Additional Parts:** ~$15-25 (display, battery, antenna, enclosure)
+- **PCB Manufacturing:** ~$10-20 per unit (depending on quantity)
+- **Assembly:** DIY or ~$30-50 professional assembly
+
+**Total Estimated Cost per Unit:** ~$124-194
+
+*Note: Prices based on small quantity orders (5 units). Costs decrease significantly with larger production runs.*
 
 ## Contact & Updates
 
