@@ -6,27 +6,55 @@ This directory contains the custom hardware design for the **MESHTASTIC Build-Of
 
 ## PCB Renders
 
-### Front
+<table>
+<tr>
+<td width="50%">
+
+**Front**
 
 ![PCB Front Render](Hardware/Front.jpg)
 
-### Back
+</td>
+<td width="50%">
+
+**Back**
 
 ![PCB Back Render](Hardware/Back.jpg)
+
+</td>
+</tr>
+</table>
 
 ## Device Photos
 
 ### Assembled Device
 
+<table>
+<tr>
+<td width="50%">
+
 ![Device Photo 1](Demo/images/IMG_6619.JPG)
+
+</td>
+<td width="50%">
 
 ![Device Photo 2](Demo/images/IMG_6629.JPG)
 
-### Display & Interface
+</td>
+</tr>
+<tr>
+<td width="50%">
 
-![Display Interface](Demo/images/IMG_6630.JPG)
+![Device Photo 3](Demo/images/IMG_6630.JPG)
 
-![Device in Operation](Demo/images/IMG_6632.jpg)
+</td>
+<td width="50%">
+
+![Device Photo 4](Demo/images/IMG_6632.jpg)
+
+</td>
+</tr>
+</table>
 
 ## Competition Entry
 
