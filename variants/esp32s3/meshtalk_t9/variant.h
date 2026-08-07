@@ -5,9 +5,22 @@
  */
 
 // ── LED ───────────────────────────────────────────────────────────────────────
-#define LED_PIN      17
-#define LED_STATE_ON 1
+// #define HAS_LED              1       // Tells Meshtastic to initialize LED subsystem
 
+// #define LED_PIN              17      // Physical GPIO pin
+// #define LED_STATE_ON         1       // 1 = Active HIGH (since HIGH turned your LED on)
+
+// // Low-level aliases (Required for ESP32 BSP compatibility)
+// #ifndef PIN_LED
+//   #define PIN_LED            LED_PIN
+// #endif
+// #define LED_HEARTBEAT LED_PIN
+
+
+// pinMode(17, OUTPUT);
+// Tell power module to manage this LED state
+// #define LED_POWER            LED_PIN
+// #define LED_POWER_ON         LED_STATE_ON
 // ── Boot button ───────────────────────────────────────────────────────────────
 // Hardware pull-up R11 (10kΩ) on PCB — no BUTTON_NEED_PULLUP required
 #define BUTTON_PIN 0

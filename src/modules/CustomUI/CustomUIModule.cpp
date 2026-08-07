@@ -63,8 +63,12 @@ CustomUIModule::CustomUIModule()
       lastProgressUpdate(0),
       splashScreen(nullptr),
       displayAsleep(false),
-      lastActivityTime(0) {
+      lastActivityTime(0),
+      ledState(LED_IDLE),
+      ledStateStartTime(0) {
     
+    pinMode(17, OUTPUT);
+    digitalWrite(17, LOW); // Ensure LED starts OFF 
     LOG_INFO("🔧 CUSTOM UI: Module constructed with screen-based architecture");
     registerInitializers();
     
@@ -327,6 +331,9 @@ int32_t CustomUIModule::runOnce() {
     // Re-check validity after potential navigation
     if (!currentScreen) return 1000;
     
+    // Update LED blink animation (non-blocking)
+    updateLedBlink();
+    
     // Check for display sleep timeout
     checkDisplaySleep();
     
@@ -457,6 +464,9 @@ ProcessMessage CustomUIModule::handleReceived(const meshtastic_MeshPacket &mp) {
             
             // Store message in DataStore
             DataStore::getInstance().addMessage(messageInfo);
+            
+            // Trigger non-blocking LED blink notification
+            triggerLedBlink();
             
             // Show message on MessagesScreen
             if (messagesScreen) {
@@ -642,6 +652,51 @@ int CustomUIModule::onDeepSleep(void *unused) {
     
     LOG_INFO("🔧 CUSTOM UI: Deep sleep cleanup completed");
     return 0; // Allow deep sleep to proceed
+}
+
+// ========== Non-blocking LED Blink ==========
+void CustomUIModule::triggerLedBlink() {
+    ledState = LED_ON_FIRST;
+    ledStateStartTime = millis();
+    digitalWrite(17, HIGH);
+    LOG_INFO("🔧 CUSTOM UI: LED blink triggered");
+}
+
+void CustomUIModule::updateLedBlink() {
+    if (ledState == LED_IDLE) return;
+    
+    unsigned long elapsed = millis() - ledStateStartTime;
+    
+    switch (ledState) {
+        case LED_ON_FIRST:
+            if (elapsed >= 50) { // 0.3s
+                digitalWrite(17, LOW);
+                ledState = LED_OFF_MIDDLE;
+                ledStateStartTime = millis();
+            }
+            break;
+            
+        case LED_OFF_MIDDLE:
+            if (elapsed >= 25) { // 0.1s
+                digitalWrite(17, HIGH);
+                ledState = LED_ON_SECOND;
+                ledStateStartTime = millis();
+            }
+            break;
+            
+        case LED_ON_SECOND:
+            if (elapsed >= 50) { // 0.3s
+                digitalWrite(17, LOW);
+                ledState = LED_IDLE;
+                LOG_INFO("🔧 CUSTOM UI: LED blink complete");
+            }
+            break;
+            
+        default:
+            ledState = LED_IDLE;
+            digitalWrite(17, LOW);
+            break;
+    }
 }
 
 #endif

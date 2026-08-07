@@ -125,12 +125,13 @@ InitDisplay::~InitDisplay() {
 
 bool InitDisplay::init() {
     LOG_INFO("🔧 InitDisplay: Initializing ST7789 display with LovyanGFX...");
-    
+    #if defined(VARIANT_heltec_v4_custom)
     // Initialize Vext (external power) first - V4 uses GPIO36 active low
-    pinMode(36, OUTPUT);
-    digitalWrite(36, LOW); // Turn ON external power (active low)
-    delay(200); // Wait for power to stabilize
-    LOG_INFO("🔧 InitDisplay: External power (Vext) enabled on GPIO36");
+        pinMode(36, OUTPUT);
+        digitalWrite(36, LOW); // Turn ON external power (active low)
+        delay(200); // Wait for power to stabilize
+        LOG_INFO("🔧 InitDisplay: External power (Vext) enabled on GPIO36");
+    #endif
     
     // Initialize backlight pin first
     if (TFT_BL >= 0) {

@@ -115,7 +115,19 @@ private:
     unsigned long lastActivityTime;
     static const unsigned long DISPLAY_SLEEP_TIMEOUT = 30000; // 30 seconds in milliseconds
     
+    // LED notification blink state
+    enum LedBlinkState {
+        LED_IDLE,
+        LED_ON_FIRST,
+        LED_OFF_MIDDLE,
+        LED_ON_SECOND
+    };
+    LedBlinkState ledState;
+    unsigned long ledStateStartTime;
+    
     // Helper methods
+    void triggerLedBlink();
+    void updateLedBlink();
     void registerInitializers();
     void connectComponents();
     void initScreens();

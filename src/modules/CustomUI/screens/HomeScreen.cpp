@@ -146,7 +146,7 @@ void HomeScreen::drawNetworkInfo(lgfx::LGFX_Device& tft) {
     
     // LoRa status
     tft.setCursor(LEFT_COLUMN_X + 5, y);
-    if (LoRaHelper::getNodeCount() > 0) {
+    if (LoRaHelper::isLoRaOnline()) {
         tft.setTextColor(0x07E0, 0x0000); // Green
         tft.print("LoRa: Connected");
     } else {

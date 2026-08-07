@@ -6,6 +6,7 @@
 #include "mesh/MeshTypes.h"
 #include "mesh/Channels.h"
 #include "mesh/Router.h"
+#include "mesh/RadioLibInterface.h"
 #include "mesh/generated/meshtastic/mesh.pb.h"
 #include "gps/RTC.h" // for getTime() function
 #include <algorithm>
@@ -82,8 +83,10 @@ int LoRaHelper::getNodeCount() {
 }
 
 bool LoRaHelper::isLoRaOnline() {
-    // Check if mesh service is running
-    return service != nullptr;
+    // Check that the mesh service is running AND the radio hardware was
+    // actually detected/initialized (service alone stays non-null even if
+    // radio init failed, so it can't tell "connected" from "no chip").
+    return service != nullptr && RadioLibInterface::instance != nullptr;
 }
 
 std::vector<NodeInfo> LoRaHelper::getNodesList(int maxNodes, bool includeOffline) {
