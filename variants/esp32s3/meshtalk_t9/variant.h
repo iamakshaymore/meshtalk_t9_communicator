@@ -31,11 +31,10 @@
 #define BATTERY_PIN                   8
 #define ADC_CHANNEL                   ADC_CHANNEL_7
 #define BATTERY_SENSE_RESOLUTION_BITS 12
-#define ADC_MULTIPLIER                40.0
-#define ADC_ATTENUATION               ADC_ATTEN_DB_0
+#define ADC_MULTIPLIER                4.9
+#define ADC_ATTENUATION               ADC_ATTEN_DB_2_5
 #define ADC_CTRL                      47
 #define ADC_CTRL_ENABLED              HIGH
-
 // ── Screen ────────────────────────────────────────────────────────────────────
 // Meshtastic built-in screen disabled — handled by CustomUIModule
 #define HAS_SCREEN 0
