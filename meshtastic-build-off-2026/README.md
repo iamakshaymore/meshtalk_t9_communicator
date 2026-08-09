@@ -99,7 +99,7 @@ This directory contains the custom hardware design for the **MESHTASTIC Build-Of
 
 [![Watch the demo video](Demo/images/IMG_6630.JPG)](https://www.youtube.com/watch?v=elmYMMCQKS4)
 
-**[▶️ Click to watch the full device demonstration on Google Drive](https://www.youtube.com/watch?v=elmYMMCQKS4)**
+**[▶️ Click to watch the full device demonstration on Youtube](https://www.youtube.com/watch?v=elmYMMCQKS4)**
 
 *Device demonstration showing the T9 interface, messaging, and LoRa mesh functionality*
 
