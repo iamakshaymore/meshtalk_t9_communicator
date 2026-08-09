@@ -26,6 +26,7 @@
 **This is a fork of the official Meshtastic firmware** with custom UI implementation currently working on:
 - **Heltec WiFi LoRa 32 V3**
 - **Heltec WiFi LoRa 32 V4**
+- **MeshTalk T9** (Custom PCB - MESHTASTIC Build-Off 2026 Entry)
 
 This fork adds a custom keyboard-driven UI with T9 input, LoRa network visualization, and message management capabilities using a 4x4 matrix keypad and TFT display.
 
@@ -67,6 +68,44 @@ This fork adds a custom keyboard-driven UI with T9 input, LoRa network visualiza
 - Battery Pin: GPIO 1 (ADC)
 - ADC Channel: ADC_CHANNEL_0
 
+#### MeshTalk T9 Custom Pin Configuration (MESHTASTIC Build-Off 2026 🏆)
+
+**Hardware Platform:**
+- **MCU:** ESP32-S3-WROOM-1-N16R8 (16MB Flash, 8MB PSRAM)
+- **LoRa Module:** Seeed Wio-SX1262
+- **Display:** ST7789 TFT (240x320) via LovyanGFX
+- **Input:** 4x4 Matrix Keypad
+- **Form Factor:** Custom PCB design with integrated components
+
+**LoRa Configuration (Wio-SX1262):**
+- MISO: GPIO 11
+- MOSI: GPIO 12
+- SCK: GPIO 13
+- CS: GPIO 21
+- Reset: GPIO 14
+- DIO1: GPIO 9
+- BUSY: GPIO 10
+- RF Switch: DIO2 controlled
+- TCXO: 1.8V
+
+**Power & Battery:**
+- Battery ADC: GPIO 8 (ADC_CHANNEL_7)
+- ADC Control: GPIO 47 (enable/disable to save power)
+- ADC Multiplier: 4.9 (390kΩ/10kΩ voltage divider)
+- ADC Attenuation: 2.5dB
+- Boot Button: GPIO 0 (hardware pull-up)
+
+**Flash & Memory:**
+- 16MB Flash (QIO mode, 80MHz)
+- 8MB Octal SPI PSRAM (QIO OPI mode)
+- Custom 16MB partition scheme
+
+**Project Links:**
+- 📁 Hardware Design: `meshtastic-build-off-2026/Hardware/meshtalk_t9/`
+- 🎬 Demo Video: [YouTube](https://www.youtube.com/watch?v=elmYMMCQKS4)
+- 📸 Photos & Schematics: `meshtastic-build-off-2026/Demo/`
+
+
 ### Features
 
 - Custom T9 text input system for efficient messaging
@@ -77,31 +116,33 @@ This fork adds a custom keyboard-driven UI with T9 input, LoRa network visualiza
 - Battery monitoring and power management
 - Bluetooth disabled for reduced power consumption
 
-## Next Steps: MESHTASTIC Build-Off 2026 🏆
+## MESHTASTIC Build-Off 2026 Status 🏆
 
-This project is being prepared for the **MESHTASTIC Build-Off 2026** competition. Development roadmap:
+This project is my entry for the **MESHTASTIC Build-Off 2026** competition featuring the **MeshTalk T9** - a custom hardware device with integrated display and keypad.
 
-### Phase 1: Custom PCB Design ⚡
-- Design custom PCB using **ESP32-S3** microcontroller
-- Integrate **Wio-SX1262 Wireless Module** for LoRa communication
-- Optimize board layout for competition requirements
-- Include integrated keypad matrix and display connections
-- Add power management circuitry and battery charging
+### Phase 1: Custom PCB Design ✅ **COMPLETE**
+- ✅ Designed custom PCB using **ESP32-S3-WROOM-1-N16R8** (16MB Flash, 8MB PSRAM)
+- ✅ Integrated **Seeed Wio-SX1262** LoRa module
+- ✅ Optimized board layout with RF considerations
+- ✅ Integrated keypad matrix and display connections on-board
+- ✅ Implemented power management with battery charging circuitry
+- ✅ PCB manufactured and assembled successfully
 
-### Phase 2: Firmware Adaptation 🔧
-- Port custom UI module to new hardware platform
-- Update pin configurations for custom PCB
-- Optimize firmware for hardware-specific features
-- Implement board-specific power management
-- Create custom variant configuration
+### Phase 2: Firmware Adaptation ✅ **COMPLETE**
+- ✅ Ported custom UI module to MeshTalk T9 hardware
+- ✅ Updated pin configurations for custom PCB (`variants/esp32s3/meshtalk_t9/`)
+- ✅ Configured SX1262 LoRa radio with proper RF switching
+- ✅ Implemented battery monitoring with ADC control for power savings
+- ✅ Created custom variant configuration with 16MB partition scheme
+- ✅ Device boots and runs Meshtastic firmware successfully
 
-### Phase 3: Testing & Validation ✅
-- Extensive testing similar to Heltec V3/V4 validation
-- Range testing and mesh network performance benchmarks
-- Power consumption analysis and optimization
-- UI/UX testing with physical hardware
-- Field testing in real-world scenarios
-- Documentation and competition submission preparation
+### Phase 3: Testing & Validation ✅ **COMPLETE**
+- ✅ Extensive testing similar to Heltec V3/V4 validation
+- ✅ Range testing and mesh network performance benchmarks
+- ✅ Power consumption analysis and optimization
+- ✅ UI/UX testing with physical hardware
+- ✅ Field testing in real-world scenarios
+- ✅ Documentation and competition submission preparation
 
 ## Building the Firmware
 
@@ -115,6 +156,21 @@ platformio run -e heltec-v3-custom -t upload
 ```bash
 platformio run -e heltec-v4-custom
 platformio run -e heltec-v4-custom -t upload
+```
+
+### For MeshTalk T9 (Build-Off 2026 Entry)
+```bash
+# Build firmware
+platformio run -e meshtalk-t9
+
+# Upload to device
+platformio run -e meshtalk-t9 -t upload --upload-port /dev/cu.usbmodem101
+
+# Erase flash and upload (for first-time flash or troubleshooting)
+platformio run -e meshtalk-t9 -t erase_upload
+
+# Monitor serial output
+platformio device monitor -p /dev/cu.usbmodem101
 ```
 
 ### Get Started
