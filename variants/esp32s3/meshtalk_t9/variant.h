@@ -64,3 +64,11 @@
 #define MESHTALK_T9 1
 
 #endif
+
+// ── T9 Matrix Keypad ─────────────────────────────────────────────────────────
+// 4×4 matrix keypad wake source configuration
+// Row pins driven LOW during sleep, column pins configured as GPIO wake sources
+#define KEYPAD_ROW_COUNT 4
+#define KEYPAD_COL_COUNT 4
+#define KEYPAD_ROW_PINS {41, 40, 39, 38}
+#define KEYPAD_COL_PINS {42, 2, 1, 48}

@@ -112,8 +112,9 @@ private:
     
     // Display sleep management
     bool displayAsleep;
+    bool displayWakeStabilizing;        // True while display stabilizes after wake
+    unsigned long displayWakeStabilizeTime; // Time when stabilization started
     unsigned long lastActivityTime;
-    static const unsigned long DISPLAY_SLEEP_TIMEOUT = 30000; // 30 seconds in milliseconds
     
     // LED notification blink state
     enum LedBlinkState {
@@ -144,6 +145,14 @@ private:
     int onDeepSleep(void *unused);
     CallbackObserver<CustomUIModule, void *> deepSleepObserver = 
         CallbackObserver<CustomUIModule, void *>(this, &CustomUIModule::onDeepSleep);
+    
+    // Light sleep handling (keypad wake source setup/cleanup)
+    int onLightSleep(void *unused);
+    int onLightSleepEnd(esp_sleep_wakeup_cause_t cause);
+    CallbackObserver<CustomUIModule, void *> lightSleepObserver = 
+        CallbackObserver<CustomUIModule, void *>(this, &CustomUIModule::onLightSleep);
+    CallbackObserver<CustomUIModule, esp_sleep_wakeup_cause_t> lightSleepEndObserver = 
+        CallbackObserver<CustomUIModule, esp_sleep_wakeup_cause_t>(this, &CustomUIModule::onLightSleepEnd);
     
     // Input handling
     void checkKeypadInput();

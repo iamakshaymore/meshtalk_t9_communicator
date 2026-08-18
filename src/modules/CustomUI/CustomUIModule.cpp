@@ -10,6 +10,8 @@
 
 #include "CustomUIModule.h"
 #include "DebugConfiguration.h"
+#include "PowerFSM.h"
+#include "Default.h"
 #include "init/InitBase.h"
 #include "init/InitDisplay.h"
 #include "init/InitKeypad.h"
@@ -34,6 +36,8 @@
 #ifdef ESP32
 #include <esp_heap_caps.h>
 #include <esp_heap_caps_init.h>
+#include <esp_sleep.h>
+#include <driver/gpio.h>
 #endif
 #include <RTC.h>
 
@@ -63,6 +67,8 @@ CustomUIModule::CustomUIModule()
       lastProgressUpdate(0),
       splashScreen(nullptr),
       displayAsleep(false),
+      displayWakeStabilizing(false),
+      displayWakeStabilizeTime(0),
       lastActivityTime(0),
       ledState(LED_IDLE),
       ledStateStartTime(0) {
@@ -72,9 +78,11 @@ CustomUIModule::CustomUIModule()
     LOG_INFO("🔧 CUSTOM UI: Module constructed with screen-based architecture");
     registerInitializers();
     
-    // Register for deep sleep notifications to ensure proper cleanup
+    // Register for sleep notifications
     deepSleepObserver.observe(&notifyDeepSleep);
-    LOG_INFO("🔧 CUSTOM UI: Registered deep sleep observer");
+    lightSleepObserver.observe(&notifyLightSleep);
+    lightSleepEndObserver.observe(&notifyLightSleepEnd);
+    LOG_INFO("🔧 CUSTOM UI: Registered sleep observers (deep + light)");
 }
 
 CustomUIModule::~CustomUIModule() {
@@ -319,6 +327,16 @@ int32_t CustomUIModule::runOnce() {
     // Get current screen from manager
     currentScreen = screenManager.getCurrentScreen();
     
+    // Handle display wake stabilization (non-blocking alternative to delay(50) in wakeDisplay)
+    if (displayWakeStabilizing) {
+        if (millis() - displayWakeStabilizeTime >= 50) {
+            displayWakeStabilizing = false;
+            LOG_DEBUG("🔧 CUSTOM UI: Display wake stabilized");
+        } else {
+            return 10; // Check again soon
+        }
+    }
+    
     if (!currentScreen || !tft) {
         return 1000; // Wait 1 second if no screen ready
     }
@@ -521,6 +539,10 @@ void CustomUIModule::checkKeypadInput() {
     char key = keypad->getKey();
     
     if (key) {
+        // Reset PowerFSM idle timer on every keypress (not just when display asleep)
+        // This ensures screen_on_secs/ls_secs timers respect real T9 usage
+        powerFSM.trigger(EVENT_INPUT);
+        
         LOG_INFO("🔧 CUSTOM UI: Keypad key pressed: %c (display asleep: %s)", key, displayAsleep ? "YES" : "NO");
         
         // Wake display if asleep
@@ -558,9 +580,14 @@ void CustomUIModule::checkDisplaySleep() {
     unsigned long currentTime = millis();
     unsigned long timeSinceActivity = currentTime - lastActivityTime;
     
+    // Use configurable screen_on_secs timeout instead of hardcoded 30s
+    // This makes CustomUI consistent with the rest of the firmware's power management
+    uint32_t sleepTimeoutMs = Default::getConfiguredOrDefaultMs(config.display.screen_on_secs, default_screen_on_secs);
+    
     // Check if timeout exceeded
-    if (timeSinceActivity >= DISPLAY_SLEEP_TIMEOUT) {
-        LOG_INFO("🔧 CUSTOM UI: Display sleep timeout reached (%lu ms since last activity)", timeSinceActivity);
+    if (timeSinceActivity >= sleepTimeoutMs) {
+        LOG_INFO("🔧 CUSTOM UI: Display sleep timeout reached (%lu ms since last activity, configured: %lu ms)", 
+                 timeSinceActivity, sleepTimeoutMs);
         sleepDisplay();
     }
 }
@@ -587,8 +614,10 @@ void CustomUIModule::wakeDisplay() {
     // Wake up display using LovyanGFX wakeup function
     tft->wakeup();
     
-    // Give display time to stabilize
-    delay(50);
+    // Set non-blocking stabilization state instead of delay(50)
+    // Checked in runOnce() to avoid blocking mesh packet path
+    displayWakeStabilizing = true;
+    displayWakeStabilizeTime = millis();
     
     displayAsleep = false;
     
@@ -652,6 +681,51 @@ int CustomUIModule::onDeepSleep(void *unused) {
     
     LOG_INFO("🔧 CUSTOM UI: Deep sleep cleanup completed");
     return 0; // Allow deep sleep to proceed
+}
+
+// ========== Light Sleep Handlers ==========
+int CustomUIModule::onLightSleep(void *unused) {
+#if defined(MESHTALK_T9) && defined(ESP32)
+    // Matrix keypad wake source setup
+    // Drive all row pins LOW so any keypress pulls a column pin HIGH
+    // Then configure column pins as GPIO wake sources
+    static const byte keypadRowPins[] = KEYPAD_ROW_PINS;
+    static const byte keypadColPins[] = KEYPAD_COL_PINS;
+    
+    for (int i = 0; i < KEYPAD_ROW_COUNT; i++) {
+        pinMode(keypadRowPins[i], OUTPUT);
+        digitalWrite(keypadRowPins[i], LOW);
+    }
+    
+    // Enable GPIO wakeup on column pins (active HIGH when row is LOW and key is pressed)
+    for (int i = 0; i < KEYPAD_COL_COUNT; i++) {
+        gpio_wakeup_enable((gpio_num_t)keypadColPins[i], GPIO_INTR_HIGH_LEVEL);
+    }
+    
+    LOG_DEBUG("🔧 CUSTOM UI: Enabled matrix keypad wake source (rows LOW, columns wake on HIGH)");
+#endif
+    return 0;
+}
+
+int CustomUIModule::onLightSleepEnd(esp_sleep_wakeup_cause_t cause) {
+#if defined(MESHTALK_T9) && defined(ESP32)
+    // Disable matrix keypad wake sources and restore normal operation
+    static const byte keypadRowPins[] = KEYPAD_ROW_PINS;
+    static const byte keypadColPins[] = KEYPAD_COL_PINS;
+    
+    for (int i = 0; i < KEYPAD_COL_COUNT; i++) {
+        gpio_wakeup_disable((gpio_num_t)keypadColPins[i]);
+    }
+    
+    // Restore row pins to normal Keypad library control (set as inputs with pullup)
+    // The Keypad library will handle them from here
+    for (int i = 0; i < KEYPAD_ROW_COUNT; i++) {
+        pinMode(keypadRowPins[i], INPUT_PULLUP);
+    }
+    
+    LOG_DEBUG("🔧 CUSTOM UI: Disabled matrix keypad wake sources, restored normal scanning");
+#endif
+    return 0;
 }
 
 // ========== Non-blocking LED Blink ==========
